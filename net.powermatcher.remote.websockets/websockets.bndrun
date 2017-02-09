@@ -31,10 +31,10 @@
 	org.apache.felix.webconsole.plugins.ds;version='[1.0.0,1.0.1)',\
 	osgi.residential;version='[4.3.0,4.3.1)',\
 	slf4j.api;version='[1.7.7,1.7.8)',\
-	net.powermatcher.api;version='[2.0.0,2.0.1)',\
-	net.powermatcher.core;version='[2.0.0,2.0.1)',\
-	net.powermatcher.examples;version='[2.0.0,2.0.1)',\
-	net.powermatcher.monitoring.csv;version='[2.0.1,2.0.2)',\
-	net.powermatcher.remote.websockets.client;version='[2.0.0,2.0.1)',\
-	net.powermatcher.remote.websockets.server;version='[2.0.0,2.0.1)',\
-	net.powermatcher.runtime;version='[2.0.0,2.0.1)'
+	net.powermatcher.api;version=snapshot,\
+	net.powermatcher.core;version=snapshot,\
+	net.powermatcher.examples;version=snapshot,\
+	net.powermatcher.monitoring.csv;version=snapshot,\
+	net.powermatcher.remote.websockets.client;version=snapshot,\
+	net.powermatcher.remote.websockets.server;version=snapshot,\
+	net.powermatcher.runtime;version=snapshot
