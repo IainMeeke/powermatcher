@@ -75,30 +75,32 @@ public class CSVLogger
     public static interface Config {
         @Meta.AD(required = false,
                  description = "Filter for specific agentId's. When no filters are supplied, it will log everything.")
-            List<String> filter();
+        List<String> filter();
 
         @Meta.AD(name = "eventType", description = "The AgentEventType this logger has to log.")
-                       AgentEventType eventType();
+        AgentEventType eventType();
 
         @Meta.AD(deflt = "event_log_::yyyyMMdd::.csv",
                  description = "The pattern for the file name of the log file. "
                                + "Dataformat strings are placed between the delimeter '::'")
-               String logFilenamePattern();
+        String logFilenamePattern();
 
         @Meta.AD(deflt = "yyyy-MM-dd HH:mm:ss", description = "The date format for the timestamps in the log.")
-               String dateFormat();
+        String dateFormat();
 
         @Meta.AD(deflt = ";", description = "The field separator the logger will use.")
-               String separator();
+        String separator();
 
-        @Meta.AD(required = true, description = "The location of the log files.")
-               String logLocation();
+        @Meta.AD(deflt = "/Users/iainmeeke/Documents/workspace/logs_powermatcher",
+                 required = true,
+                 description = "The location of the log files.")
+        String logLocation();
 
         @Meta.AD(deflt = "30", description = "Time in seconds between file dumps.")
-             long logUpdateRate();
+        long logUpdateRate();
 
         @Meta.AD(deflt = "csvLogger")
-               String loggerId();
+        String loggerId();
     }
 
     /**
