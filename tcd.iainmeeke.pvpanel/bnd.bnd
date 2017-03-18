@@ -1,0 +1,3 @@
+-buildpath: ${pm-buildpath}, net.powermatcher.core;version=latest
+Private-Package: tcd.iainmeeke.pvpanel*
+Service-Component:  *
