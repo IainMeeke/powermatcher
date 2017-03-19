@@ -1,4 +1,4 @@
-package tcd.iainmeeke.airconditioning;
+package tcd.iainmeeke.waterheater;
 
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -22,26 +22,26 @@ import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.core.BaseAgentEndpoint;
 
 /**
- * {@link PVPanelAgent} is a implementation of a {@link BaseAgentEndpoint}. It represents a dummy air conditioning unit.
+ * {@link PVPanelAgent} is a implementation of a {@link BaseAgentEndpoint}. It represents a dummy wind turbine.
  * {@link PVPanelAgent} creates a {@link PointBid} with random {@link PricePoint}s at a set interval. It does nothing
  * with the returned {@link Price}.
  * 
  * @author FAN
  * @version 2.0
  */
-@Component(designateFactory = AC.Config.class,
+@Component(designateFactory = WaterHeater.Config.class,
            immediate = true,
            provide = { ObservableAgent.class, AgentEndpoint.class })
-public class AC
+public class WaterHeater
     extends BaseAgentEndpoint
     implements AgentEndpoint {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AC.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WaterHeater.class);
 
     private Config config;
 
     public static interface Config {
-        @Meta.AD(deflt = "AC", description = "The unique identifier of the agent")
+        @Meta.AD(deflt = "WaterHeater", description = "The unique identifier of the agent")
         String agentId();
 
         @Meta.AD(deflt = "concentrator",
@@ -118,7 +118,7 @@ public class AC
     @Override
     public synchronized void handlePriceUpdate(PriceUpdate priceUpdate) {
         super.handlePriceUpdate(priceUpdate);
-        // Nothing to control for a AC
+        // Nothing to control for a wather heater
     }
 
     /**
