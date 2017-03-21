@@ -2,10 +2,13 @@ package tcd.iainmeeke.pvpanel;
 
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import java.io.IOException;
+import java.util.Date;
 
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
+import org.apache.http.client.ClientProtocolException;
 import org.flexiblepower.context.FlexiblePowerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +59,9 @@ public class PVPanel
 
         @Meta.AD(deflt = "-2000000", description = "The maximum value the random demand.")
         double maximumDemand();
+        
+        
+        
     }
 
     /**
@@ -78,15 +84,17 @@ public class PVPanel
      * 
      * @param properties
      *            the configuration properties
+     * @throws IOException 
+     * @throws ClientProtocolException 
      */
     @Activate
-    public void activate(Map<String, Object> properties) {
+    public void activate(Map<String, Object> properties) throws ClientProtocolException, IOException {
         config = Configurable.createConfigurable(Config.class, properties);
         init(config.agentId(), config.desiredParentId());
 
         minimumDemand = config.minimumDemand();
         maximumDemand = config.maximumDemand();
-
+        PowerOutput pv = new PowerOutput(53,-6,10,0,1,35,180);
         LOGGER.info("Agent [{}], activated", config.agentId());
     }
 

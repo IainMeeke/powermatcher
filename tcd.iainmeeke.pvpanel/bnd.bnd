@@ -1,3 +1,7 @@
--buildpath: ${pm-buildpath}, net.powermatcher.core;version=latest
+-buildpath: \
+	${pm-buildpath},\
+	net.powermatcher.core;version=latest,\
+	org.apache.httpcomponents.httpclient,\
+	org.apache.httpcomponents.httpcore
 Private-Package: tcd.iainmeeke.pvpanel*
 Service-Component:  *
