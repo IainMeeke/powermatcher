@@ -109,6 +109,10 @@ public class AC
         if (currentStatus.isConnected()) {
             double demand = 0.0;//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
             publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //make this not flat, look at bid in freezer
+            
+           /*
+            * set a 'comfort' range that the user wants rather than one single temperature. Bid around that range
+            */
         }
     }
 
