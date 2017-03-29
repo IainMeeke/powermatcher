@@ -1,11 +1,13 @@
 package tcd.iainmeeke.windturbine;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
+import org.apache.http.client.ClientProtocolException;
 import org.flexiblepower.context.FlexiblePowerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,12 +80,14 @@ public class WindTurbine
      * 
      * @param properties
      *            the configuration properties
+     * @throws IOException 
+     * @throws ClientProtocolException 
      */
     @Activate
-    public void activate(Map<String, Object> properties) {
+    public void activate(Map<String, Object> properties) throws ClientProtocolException, IOException {
         config = Configurable.createConfigurable(Config.class, properties);
         init(config.agentId(), config.desiredParentId());
-
+        PowerOutput windPower = new PowerOutput(53, -6, 10);
         minimumDemand = config.minimumDemand();
         maximumDemand = config.maximumDemand();
 
