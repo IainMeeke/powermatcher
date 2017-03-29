@@ -15,3 +15,4 @@ RemoteSystemsTempFiles/.project
 testdir/
 .com_puppetlabs_geppetto_pptp_target
 net.powermatcher.remote.websockets/res/
+cnf/conf-local/
