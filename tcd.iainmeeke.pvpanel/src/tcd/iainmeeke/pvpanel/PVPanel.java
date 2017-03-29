@@ -54,30 +54,35 @@ public class PVPanel
         @Meta.AD(deflt = "5", description = "Number of seconds between bid updates")
         long bidUpdateRate();
 
-        @Meta.AD(deflt = "-1", description = "The mimimum value of the random demand.")
-        double minimumDemand();
-
-        @Meta.AD(deflt = "-2000000", description = "The maximum value the random demand.")
-        double maximumDemand();
+        @Meta.AD(deflt = "53", description = "latitude of the solar panel")
+        double latitude();
         
+        @Meta.AD(deflt = "-6", description = "longitude of the solar panel")
+        double longitude();
         
+        @Meta.AD(deflt = "10", description = "system loss of the solar panel by percentage")
+        double sysLoss();
+        
+        @Meta.AD(deflt = "10", description = "Capacity of the solar panel in kW")
+        double capacity();
+        
+        @Meta.AD(deflt = "0", description = "Does the solar panel have tracking? 0=no tracking, 1=Azimuth Tracking, 2=Azimuth and Tilt Tracking")
+        int tracking();
+        
+        @Meta.AD(deflt = "35", description = "The angle the panel is at relative to horizontal (0 is facing directly upwards, 90 is vertically installed)")
+        int tilt();
+        
+        @Meta.AD(deflt = "180", description = "Compass direction of the panel. For latitude >= 0, 180 degrees is south facing")
+        int azim();
         
     }
-
     /**
      * A delayed result-bearing action that can be cancelled.
      */
     private ScheduledFuture<?> scheduledFuture;		
-
-    /**
-     * The mimimum value of the random demand.
-     */
-    private double minimumDemand;
-
-    /**
-     * The maximum value the random demand.
-     */
-    private double maximumDemand;
+    PowerOutput pv;
+    
+    
 
     /**
      * OSGi calls this method to activate a managed service.
@@ -92,9 +97,8 @@ public class PVPanel
         config = Configurable.createConfigurable(Config.class, properties);
         init(config.agentId(), config.desiredParentId());
 
-        minimumDemand = config.minimumDemand();
-        maximumDemand = config.maximumDemand();
-        PowerOutput pv = new PowerOutput(53,-6,10,0,1,35,180);
+        pv = new PowerOutput(config.latitude(), config.longitude(), config.sysLoss(), config.tracking(), config.capacity(), config.tilt(), config.azim());
+        double demand = pv.getDemand(new Date());//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
         LOGGER.info("Agent [{}], activated", config.agentId());
     }
 
@@ -115,7 +119,7 @@ public class PVPanel
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
-            double demand = 0.0;//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
+            double demand = pv.getDemand(new Date());//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
             publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //make this not flat, look at bid in freezer
         }
     }
