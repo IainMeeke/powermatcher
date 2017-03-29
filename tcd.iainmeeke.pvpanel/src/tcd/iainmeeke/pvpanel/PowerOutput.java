@@ -6,17 +6,26 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.http.client.utils.URIBuilder;
 
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -26,15 +35,41 @@ import org.slf4j.LoggerFactory;
 
 public class PowerOutput {
 	
+	public static final int NO_TRACK = 0;
 	public static final int AZIMUTH_TRACK = 1;
 	public static final int AZIMUTH_TILT_TRACK = 2;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PowerOutput.class);
 	
+	private Map<Date, Double> hourlyDemand;//a map storing the demand for each hour
 
 	public PowerOutput(double lat, double lng, double sysLoss, int tracking, double capacity, double tilt, double azim) throws ClientProtocolException, IOException{
+		hourlyDemand = new LinkedHashMap<Date, Double>();
 		getOutputFile(lat, lng, sysLoss, tracking, capacity, tilt, azim);
 		
+	}
+	
+	/**
+	 * gets the demand for the current hour. Rounds the time to the current hour and sets the year to 2014
+	 * @param date the current date/time to get demand for
+	 * @return the demand as a double
+	 */
+	public double getDemand(Date date){
+		Calendar cal = Calendar.getInstance();
+		//round date down to hour and set year to 2014
+		cal.setTime(date);
+		cal.set(Calendar.MINUTE , 0);
+		cal.set(Calendar.SECOND , 0);
+		cal.set(Calendar.MILLISECOND , 0);
+		cal.set(Calendar.YEAR, 2014);
+		Date roundedDate = new Date(cal.getTimeInMillis());
+		LOGGER.info(date + " rounded to: "+roundedDate);
+		LOGGER.debug(date + " rounded to: "+roundedDate);
+		
+		double demand = hourlyDemand.get(roundedDate);
+		LOGGER.info("demand for "+roundedDate+" = "+demand);
+		LOGGER.debug("demand for "+roundedDate+" = "+demand);
+		return demand;
 	}
 	
 	/**
@@ -97,12 +132,29 @@ public class PowerOutput {
 	    HttpGet request = new HttpGet(uri);
 	    HttpResponse response = client.execute(request);
 	    //read the response and write it to a file    
-	    InputStream is = response.getEntity().getContent();   
-	    FileOutputStream vfos = new FileOutputStream(new File(valueFilePathName));
-	    int inByte;
-	    while((inByte = is.read()) != -1)
-	         vfos.write(inByte);
+	    InputStream is = response.getEntity().getContent();
+	    //FileOutputStream vfos = new FileOutputStream(new File(valueFilePathName));
+	    Scanner scanner = new Scanner(is);
+
+	    SimpleDateFormat dateFormatKey = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	    String line;
+	    scanner.nextLine(); //skip the first two lines of csv headers
+	    scanner.nextLine(); 
+	    while(scanner.hasNext()){
+	    	//vfos.write(inByte);
+	    	line = scanner.nextLine();
+	    	line.split(",");
+	    	Date dateKey = null;
+			try {
+				dateKey = dateFormatKey.parse(line.split(",")[0].trim());
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+	    	double demand = Double.parseDouble(line.split(",")[1].trim());
+	    	hourlyDemand.put(dateKey,demand);
+	    }   
+	    scanner.close();
 	    is.close();
-	    vfos.close();
+	    //vfos.close();
 	}
 }
