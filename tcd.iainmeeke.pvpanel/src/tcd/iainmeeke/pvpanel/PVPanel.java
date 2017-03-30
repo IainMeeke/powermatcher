@@ -119,8 +119,8 @@ public class PVPanel
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
-            double demand = pv.getDemand(new Date());//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
-            publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //make this not flat, look at bid in freezer
+            double demand = pv.getDemand(new Date());//get the demand for the current hour
+            publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //flat is ok for a pvPanel
         }
     }
 
