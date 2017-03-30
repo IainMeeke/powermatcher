@@ -17,6 +17,8 @@ import aQute.bnd.annotation.metatype.Configurable;
 import aQute.bnd.annotation.metatype.Meta;
 import net.powermatcher.api.AgentEndpoint;
 import net.powermatcher.api.data.Bid;
+import net.powermatcher.api.data.MarketBasis;
+import net.powermatcher.api.data.PointBidBuilder;
 import net.powermatcher.api.messages.PriceUpdate;
 import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.core.BaseAgentEndpoint;
@@ -73,6 +75,7 @@ public class EV
      */
     private double maximumDemand;
 
+    private EVSimulation ev;
     /**
      * OSGi calls this method to activate a managed service.
      * 
@@ -83,7 +86,7 @@ public class EV
     public void activate(Map<String, Object> properties) {
         config = Configurable.createConfigurable(Config.class, properties);
         init(config.agentId(), config.desiredParentId());
-
+        ev = new EVSimulation(EVType.valueOf("LEAF"));
         minimumDemand = config.minimumDemand();
         maximumDemand = config.maximumDemand();
 
@@ -107,8 +110,11 @@ public class EV
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
-            double demand = 0.0;//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
-            publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //make this not flat, look at bid in freezer
+        	MarketBasis mb = currentStatus.getMarketBasis();
+        	double carChargeDesire = ev.getTimeToChargeRatio();
+            double demand = ev.getChargePower();//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
+            publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice()/carChargeDesire, demand)
+            		.add((mb.getMaximumPrice()/carChargeDesire)+mb.getPriceIncrement(), 0).build()); //make this not flat, look at bid in freezer
         }
     }
 
