@@ -33,6 +33,10 @@ public class PowerMatcherContext
 
     static final Unit<Duration> MS = SI.MILLI(SI.SECOND);
 
+    private long now;
+    private int speedUp;
+    private long lastCheckedTime;
+
     private static final Logger logger = LoggerFactory.getLogger(PowerMatcherContext.class);
 
     /**
@@ -113,6 +117,19 @@ public class PowerMatcherContext
             }
         });
         setKeepAliveTime(5, TimeUnit.MINUTES);
+        lastCheckedTime = now = System.currentTimeMillis();
+        speedUp = 2;
+    }
+
+    /**
+     * calcutlates how much time should have passed in our simulated world and updates now time appropriatly
+     */
+    public void updateNowTime() {
+        long timeSinceCheck = System.currentTimeMillis() - lastCheckedTime;
+        lastCheckedTime = System.currentTimeMillis();
+        long simTimeSinceCheck = timeSinceCheck * speedUp;
+        now += simTimeSinceCheck;
+
     }
 
     @Override
@@ -129,22 +146,24 @@ public class PowerMatcherContext
 
     @Override
     public long currentTimeMillis() {
-        return System.currentTimeMillis();
+        updateNowTime();
+        return now;// System.currentTimeMillis();
     }
 
     @Override
     public Date currentTime() {
-        return new Date(currentTimeMillis());
+        updateNowTime();
+        return new Date(now);// currentTimeMillis());
     }
 
     @Override
     public ScheduledFuture<?> schedule(Runnable command, Measurable<Duration> delay) {
-        return schedule(command, delay.longValue(MS), TimeUnit.MILLISECONDS);
+        return schedule(command, delay.longValue(MS) / speedUp, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public <V> ScheduledFuture<V> schedule(Callable<V> callable, Measurable<Duration> delay) {
-        return schedule(callable, delay.longValue(MS), TimeUnit.MILLISECONDS);
+        return schedule(callable, delay.longValue(MS) / speedUp, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -152,8 +171,8 @@ public class PowerMatcherContext
                                                   Measurable<Duration> initialDelay,
                                                   Measurable<Duration> period) {
         return scheduleAtFixedRate(command,
-                                   initialDelay.longValue(MS),
-                                   period.longValue(MS),
+                                   initialDelay.longValue(MS) / speedUp,
+                                   period.longValue(MS) / speedUp,
                                    TimeUnit.MILLISECONDS);
     }
 
@@ -162,8 +181,8 @@ public class PowerMatcherContext
                                                      Measurable<Duration> initialDelay,
                                                      Measurable<Duration> delay) {
         return scheduleWithFixedDelay(command,
-                                      initialDelay.longValue(MS),
-                                      delay.longValue(MS),
+                                      initialDelay.longValue(MS) / speedUp,
+                                      delay.longValue(MS) / speedUp,
                                       TimeUnit.MILLISECONDS);
     }
 }
