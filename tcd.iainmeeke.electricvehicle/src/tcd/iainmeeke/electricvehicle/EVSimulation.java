@@ -3,7 +3,10 @@ package tcd.iainmeeke.electricvehicle;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.concurrent.ThreadLocalRandom;
 
+import org.flexiblepower.context.FlexiblePowerContext;
+import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,11 +21,20 @@ public class EVSimulation {
 	
 	private double currentChargeKwh; //how charged the car is in Kwh
 	private Calendar desiredChargeTime; //the time the car has to be charged by
+	private Calendar arriveHomeTime; //the next time the car will arrive home
 	private double batteryCapacity; //the size of the battery in Kwh
 	private double chargePower; //the power the car charges at
 	private boolean pluggedIn; //is the car actually at home
 	private boolean charging; //is the car being charged
-	private long timeToCharge;//how long it will take to charge the car to the desired charge capacity
+	private long timeToCharge;//how long it will take to charge the car to the desired charge capacity	
+	
+	
+	private FlexiblePowerContext context;
+	private Calendar homeTimeLower;
+	private Calendar homeTimeHigher;
+	private Calendar chargeByLower;
+	private Calendar chargeByHigher;
+	
 	
 	/*
 	 * TODO 
@@ -36,24 +48,41 @@ public class EVSimulation {
 	
 	
 	
-	public EVSimulation(EVType car){
+	public EVSimulation(EVType car, FlexiblePowerContext context, Calendar homeTimeLower, Calendar homeTimeHigher, Calendar chargeByLower, Calendar chargeByHigher){
 		this.batteryCapacity = car.getCapacity();
 		this.chargePower = car.getChargePower();
-		currentChargeKwh = 0;
+		/**
+		 * need to change this so that it doesn't come back empty every day
+		 */
+		this.currentChargeKwh = 0;
+		/**
+		 * 
+		 */
+		this.homeTimeLower = homeTimeLower;
+		this.homeTimeHigher = homeTimeHigher;
+		this.chargeByLower = chargeByLower;
+		this.chargeByHigher = chargeByHigher;
+		desiredChargeTime = getRandomDate(chargeByLower, chargeByHigher);
+		arriveHomeTime = getRandomDate(homeTimeLower, homeTimeHigher);
 		pluggedIn = true;
 		charging = false;
-		
-		// set desired charge time to 6am tomorrow morning
-		//TODO make this customizable or something
-		Calendar date = new GregorianCalendar();
-		date.set(Calendar.HOUR_OF_DAY, 6);
-		date.set(Calendar.MINUTE, 0);
-		date.set(Calendar.SECOND, 0);
-		date.set(Calendar.MILLISECOND, 0);
-		date.add(Calendar.DAY_OF_MONTH, 1);
-		desiredChargeTime = date;
-				
+		this.context = context;				
 	}
+	
+	/**
+	 * gets a random Calendar date between two times
+	 * @param lowerBound the earliest the random date can be
+	 * @param upperBound the latest the random date can be
+	 * @return the random date as a Calendar
+	 */
+	public Calendar getRandomDate(Calendar lowerBound, Calendar upperBound){
+		long random = ThreadLocalRandom.current().nextLong(lowerBound.getTimeInMillis(), lowerBound.getTimeInMillis());
+		Calendar randomDate = new GregorianCalendar();
+		randomDate.setTimeInMillis(random);
+		return randomDate;
+		}
+	
+	
 	/**
 	 * get the ratio of time left until needs to be charged to time it takes to charge. 
 	 * i.e 6 hours until the car needs to be charged, takes 2 hours. This returns 3.
@@ -65,14 +94,13 @@ public class EVSimulation {
 		double timeToChargeMilli = timeToChargeHours * 3600000;
 		
 		//how long do we have until it needs to be charged
-		//TODO: change this current time to simulated time
-		double timeUntilDesired = desiredChargeTime.getTimeInMillis() - System.currentTimeMillis();
-		
-		double ratio  = timeUntilDesired/timeToChargeMilli;
-		
-		
-		return ratio;
-				
+		double timeUntilDesired = desiredChargeTime.getTimeInMillis() - context.currentTimeMillis();
+		//if it is going to take longer to charge than the time we have then give a full demand
+		if(timeUntilDesired < timeToChargeMilli){
+			return 1.0;
+		}
+		double ratio  = timeUntilDesired/timeToChargeMilli;	
+		return ratio;			
 	}
 	
 	public double getChargePower(){
@@ -81,6 +109,16 @@ public class EVSimulation {
 	
 	public double getCurrentCharge(){
 		return (currentChargeKwh/batteryCapacity)*100;
+	}
+	
+	/**
+	 * checks if the car should be plugged in (current time is past arrive home time and before desired charge time) 
+	 * @return true if the car is plugged in
+	 */
+	public boolean getPluggedIn(){
+		Long currentTimeMillis = context.currentTimeMillis();
+    	
+    	
 	}
 	
 	/**
