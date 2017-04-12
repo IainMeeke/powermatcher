@@ -1,6 +1,10 @@
 package net.powermatcher.runtime;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.ExecutionException;
@@ -33,8 +37,11 @@ public class PowerMatcherContext
 
     static final Unit<Duration> MS = SI.MILLI(SI.SECOND);
 
-    private long now;
-    private int speedUp;
+    Properties prop = new Properties();
+    InputStream input = null;
+
+    private long now; // current simulation time in milliseconds from the epoch
+    private int speedUp;// the factor the simulation is sped up by
     private long lastCheckedTime;
 
     private static final Logger logger = LoggerFactory.getLogger(PowerMatcherContext.class);
@@ -118,7 +125,19 @@ public class PowerMatcherContext
         });
         setKeepAliveTime(5, TimeUnit.MINUTES);
         lastCheckedTime = now = System.currentTimeMillis();
-        speedUp = 2;
+        try {
+            input = new FileInputStream(System.getProperty("user.dir") + "/res/config.properties");
+            prop.load(input);
+            speedUp = Integer.parseInt(prop.getProperty("speedUp"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } finally {
+            try {
+                input.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
