@@ -23,9 +23,10 @@ public class EVSimulation {
 	private double batteryCapacity; // the size of the battery in Kwh
 	private double chargePower; // the power the car charges at
 	private boolean pluggedIn; // is the car actually at home
-	private boolean charging; // is the car being charged
+	private double charging; // the value the car is being charged at 
 	private long timeToCharge;// how long it will take to charge the car to the
 								// desired charge capacity
+	private long timeLastUpdated; //time in milliseconds that the car status was last updated
 
 	private FlexiblePowerContext context;
 	private Calendar homeTimeLower;
@@ -38,7 +39,7 @@ public class EVSimulation {
 	 * time it will take to charge vs charging rates vs desired charge time -
 	 * maybe add ways for stepped desire charge time (by 10pm be at 20%, by 3am
 	 * be at 50%) - some way to update the currentCharge if it is
-	 * charging.....do I need a run method to thread it? or just do it in
+	 * CHARGING.....do I need a run method to thread it? or just do it in
 	 * EV.java - can I have different charge rates?
 	 * 
 	 */
@@ -61,7 +62,7 @@ public class EVSimulation {
 		desiredChargeTime = getRandomDate(chargeByLower, chargeByHigher);
 		arriveHomeTime = getRandomDate(homeTimeLower, homeTimeHigher);
 		pluggedIn = true;
-		charging = false;
+		charging = 0;
 		this.context = context;
 	}
 
@@ -107,32 +108,48 @@ public class EVSimulation {
 
 	/**
 	 * checks if the car should be plugged in (current time is past arrive home
-	 * time and before desired charge time)
+	 * time and before desired charge time) and updates pluggedIn accordingly
+	 * Also updates how much the car is charging
+	 * Also update the desiredChargeTime and arriveHomeTime so they make sense
 	 * 
-	 * @return true if the car should be plugged in
 	 */
-	private boolean shouldPlugIn() {
+	private void updatePlugChargeStatus() {
+	    LOGGER.info("\ncurrent time = {}\ndesiredChargeTime={}\narriveHomeTime={}",context.currentTime(), desiredChargeTime.getTime(), arriveHomeTime.getTime());
 		Long currentTimeMillis = context.currentTimeMillis();
-		if (currentTimeMillis >= arriveHomeTime.getTimeInMillis() && currentTimeMillis <= desiredChargeTime.getTimeInMillis()) {
-			return true;
+		//update the desiredCharge and arriveHome times
+		//if the current time is past the desired charge time then we have gone through a cycle and should set them to tomorrow
+		if(desiredChargeTime.getTimeInMillis() < currentTimeMillis){
+		    desiredChargeTime.add(Calendar.DATE, 1);
+		    arriveHomeTime.add(Calendar.DATE, 1);
 		}
-		return false;
+		//update plugged in
+		if (currentTimeMillis >= arriveHomeTime.getTimeInMillis() && currentTimeMillis <= desiredChargeTime.getTimeInMillis()) {
+			pluggedIn = true;
+		}
+		else{
+		    pluggedIn = false;
+		}
+		//update how much has been charged
+		Long timeSpentChargingMillis = currentTimeMillis - timeLastUpdated;
+		double timeSpentChargingHours =  timeSpentChargingMillis/(1000*60*60); //convert the time charging to be a decimal in hours
+		currentChargeKwh = Math.min(currentChargeKwh + charging*timeSpentChargingHours, batteryCapacity); //charge the battery if it is not at capacity
+		//LOGGER.info("battery current charge = {}KWh", currentChargeKwh);
 	}
 
 	/**
 	 * sets the car to be either charging or not charging. Throws an exception
 	 * if the car is not plugged in
 	 * 
-	 * @param charge
+	 * @param power
 	 *            boolean to set charging to. True is charging, as per final
 	 *            booleans above
 	 */
-	public void setCharging(boolean charge) {
+	public void setCharging(double power) {
 		if (!pluggedIn) {
 			LOGGER.error("Should not be trying to change charge state if the car is not plugged in");
 			throw new IllegalArgumentException("Invalid change of charging state");
 		}
-		charging = charge;
+		charging = power;
 		LOGGER.info("car charging is being set to " + charging);
 	}
 
@@ -157,15 +174,24 @@ public class EVSimulation {
 	 */
 	public boolean getPluggedIn() {
 	    boolean oldStatus = pluggedIn;
-		boolean pluggedIn = shouldPlugIn();
+		updatePlugChargeStatus();
 		if(pluggedIn!=oldStatus){
-		    LOGGER.debug("changing the pluggedIn status to be "+pluggedIn);
+		    LOGGER.info("changing the pluggedIn status to be "+pluggedIn);
 		}
 		return pluggedIn;
 	}
 
-	public boolean getCharging() {
-		return charging;
+	public double getCharging(){
+	    return charging;
+	}
+	/*
+	 * if the charge power is greater than 0 then the car is charging
+	 */
+	public boolean isCharging() {
+	    if(charging > 0){
+	        return CHARGING;
+	    }
+	    return NOT_CHARGING;
 	}
 
 }

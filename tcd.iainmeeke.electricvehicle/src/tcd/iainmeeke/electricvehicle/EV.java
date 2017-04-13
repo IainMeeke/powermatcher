@@ -118,8 +118,6 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
      * {@inheritDoc}
      */
     void doBidUpdate() {
-        System.out.println("debug message should be right here");
-        LOGGER.info("and here is a debug message");
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
             if (ev.getPluggedIn()) {
@@ -129,7 +127,7 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                     double carChargeDesire = ev.getTimeToChargeRatio();
                     double demand = ev.getChargePower();
                     System.out.println("carChargeDesire = " + carChargeDesire);
-                    System.out.println("demand " + demand);
+                    System.out.println("charge " + ev.getCharging());
                     if (carChargeDesire == 1) {
                         publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand));
                     } else {
@@ -158,12 +156,7 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                                                                                           // at
                                                                                           // that
                                                                                           // price
-        if (demandForCurrentPrice != 0) { // does the price mean I can consume?
-            if (ev.getCharging() == EVSimulation.NOT_CHARGING) {
-                ev.setCharging(EVSimulation.CHARGING); // set the car to be
-                                                       // charging
-            }
-        }
+        ev.setCharging(demandForCurrentPrice); // set the car to charge at this power
     }
 
     /**
@@ -242,11 +235,11 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
 
         calendarChargeByLower.set(Calendar.YEAR, currentDate.get(Calendar.YEAR));
         calendarChargeByLower.set(Calendar.MONTH, currentDate.get(Calendar.MONTH));
-        calendarChargeByLower.set(Calendar.DATE, currentDate.get(Calendar.DATE));
+        calendarChargeByLower.set(Calendar.DATE, currentDate.get(Calendar.DATE)+1);
 
         calendarChargeByUpper.set(Calendar.YEAR, currentDate.get(Calendar.YEAR));
         calendarChargeByUpper.set(Calendar.MONTH, currentDate.get(Calendar.MONTH));
-        calendarChargeByUpper.set(Calendar.DATE, currentDate.get(Calendar.DATE));
+        calendarChargeByUpper.set(Calendar.DATE, currentDate.get(Calendar.DATE)+1);
 
         ev = new EVSimulation(EVType.valueOf(config.evModel()), super.context, calendarTimeHomeLower,
                 calendarTimeHomeUpper, calendarChargeByLower, calendarChargeByUpper);
