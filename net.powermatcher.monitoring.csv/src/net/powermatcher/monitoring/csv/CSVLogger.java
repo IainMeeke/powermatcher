@@ -361,7 +361,7 @@ public class CSVLogger
 
     private String[] createLineForEVUpdateLog(EVUpdateLogRecord logRecord) {
         EVUpdate ev = logRecord.getEvUpdate();
-        return new String[] { getDateFormat().format(logRecord.getLogTime()),
+        return new String[] { getDateFormat().format(new Date(System.currentTimeMillis())),
                               logRecord.getClusterId(),
                               logRecord.getAgentId(),
                               getDateFormat().format(logRecord.getEventTimestamp()),
