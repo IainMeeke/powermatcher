@@ -63,12 +63,12 @@ public class PowerOutput {
 		cal.set(Calendar.MILLISECOND , 0);
 		cal.set(Calendar.YEAR, 2014);
 		Date roundedDate = new Date(cal.getTimeInMillis());
-		LOGGER.info(date + " rounded to: "+roundedDate);
-		LOGGER.debug(date + " rounded to: "+roundedDate);
+//		LOGGER.info(date + " rounded to: "+roundedDate);
+
 		
 		double demand = hourlyDemand.get(roundedDate);
-		LOGGER.info("demand for "+roundedDate+" = "+demand);
-		LOGGER.debug("demand for "+roundedDate+" = "+demand);
+	//	LOGGER.info("demand for "+roundedDate+" = "+demand);
+		
 		return demand;
 	}
 	
