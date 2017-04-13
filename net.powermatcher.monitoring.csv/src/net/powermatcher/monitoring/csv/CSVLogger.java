@@ -23,6 +23,7 @@ import aQute.bnd.annotation.metatype.Meta;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.EVUpdate;
 import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.api.monitoring.events.AgentEvent;
 
@@ -68,6 +69,17 @@ public class CSVLogger
                                                                     "maximumPrice",
                                                                     "priceValue",
                                                                     "lastUpdateTime" };
+    private static final String[] EV_HEADER_ROW = new String[] { "logTime",
+                                                                 "clusterId",
+                                                                 "id",
+                                                                 "lastUpdateTime",
+                                                                 "carChargeDesire",
+                                                                 "chargeLevel",
+                                                                 "arriveHomeTime",
+                                                                 "desiredChargeTime",
+                                                                 "pluggedIn",
+                                                                 "isCharging",
+                                                                 "simTime" };
 
     /**
      * OSGI configuration of the {@link CSVLogger}
@@ -192,6 +204,9 @@ public class CSVLogger
             case BID_EVENT:
                 header = BID_HEADER_ROW;
                 break;
+            case EV_EVENT:
+                header = EV_HEADER_ROW;
+                break;
             default:
                 break;
             }
@@ -277,6 +292,8 @@ public class CSVLogger
                 output = createLineForBidLogRecord((BidUpdateLogRecord) logRecord);
             } else if (logRecord instanceof PriceUpdateLogRecord) {
                 output = createLineForPriceUpdateLog((PriceUpdateLogRecord) logRecord);
+            } else if (logRecord instanceof EVUpdateLogRecord) {
+                output = createLineForEVUpdateLog((EVUpdateLogRecord) logRecord);
             }
 
             if (output != null) {
@@ -285,6 +302,7 @@ public class CSVLogger
             removeLogRecord(logRecord);
         }
         getLogger().info("CSVLogger [{}] wrote to {}", getLoggerId(), logFile);
+
     }
 
     /**
@@ -339,6 +357,21 @@ public class CSVLogger
                               String.valueOf(bidUpdate.getBidNumber()),
                               demandBuilder.toString(),
                               pricePointBuiler.toString() };
+    }
+
+    private String[] createLineForEVUpdateLog(EVUpdateLogRecord logRecord) {
+        EVUpdate ev = logRecord.getEvUpdate();
+        return new String[] { getDateFormat().format(logRecord.getLogTime()),
+                              logRecord.getClusterId(),
+                              logRecord.getAgentId(),
+                              getDateFormat().format(logRecord.getEventTimestamp()),
+                              Double.toString(ev.getCarChargeDesire()),
+                              Double.toString(ev.getChargeLevel()),
+                              ev.getArriveHomeTime().getTime().toString(),
+                              ev.getDesiredChargeTime().getTime().toString(),
+                              String.valueOf(ev.isPluggedIn()),
+                              String.valueOf(ev.isCharging()),
+                              ev.getSimTime().toString() };
     }
 
     /**

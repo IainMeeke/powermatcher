@@ -114,7 +114,7 @@ public class EVSimulation {
 	 * 
 	 */
 	private void updatePlugChargeStatus() {
-	    LOGGER.info("\ncurrent time = {}\ndesiredChargeTime={}\narriveHomeTime={}",context.currentTime(), desiredChargeTime.getTime(), arriveHomeTime.getTime());
+	    
 		Long currentTimeMillis = context.currentTimeMillis();
 		//update the desiredCharge and arriveHome times
 		//if the current time is past the desired charge time then we have gone through a cycle and should set them to tomorrow
@@ -136,7 +136,59 @@ public class EVSimulation {
 		//LOGGER.info("battery current charge = {}KWh", currentChargeKwh);
 	}
 
-	/**
+	public static boolean isNotCharging() {
+        return NOT_CHARGING;
+    }
+
+    public static Logger getLogger() {
+        return LOGGER;
+    }
+
+    public double getCurrentChargeKwh() {
+        return currentChargeKwh;
+    }
+
+    public Calendar getDesiredChargeTime() {
+        return desiredChargeTime;
+    }
+
+    public Calendar getArriveHomeTime() {
+        return arriveHomeTime;
+    }
+
+    public double getBatteryCapacity() {
+        return batteryCapacity;
+    }
+
+    public long getTimeToCharge() {
+        return timeToCharge;
+    }
+
+    public long getTimeLastUpdated() {
+        return timeLastUpdated;
+    }
+
+    public FlexiblePowerContext getContext() {
+        return context;
+    }
+
+    public Calendar getHomeTimeLower() {
+        return homeTimeLower;
+    }
+
+    public Calendar getHomeTimeHigher() {
+        return homeTimeHigher;
+    }
+
+    public Calendar getChargeByLower() {
+        return chargeByLower;
+    }
+
+    public Calendar getChargeByHigher() {
+        return chargeByHigher;
+    }
+
+    /**
 	 * sets the car to be either charging or not charging. Throws an exception
 	 * if the car is not plugged in
 	 * 

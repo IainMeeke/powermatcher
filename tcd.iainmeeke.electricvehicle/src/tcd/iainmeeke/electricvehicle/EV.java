@@ -26,9 +26,12 @@ import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.PointBidBuilder;
 import net.powermatcher.api.data.Price;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.EVUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 import net.powermatcher.api.monitoring.ObservableAgent;
+import net.powermatcher.api.monitoring.events.EVUpdateEvent;
 import net.powermatcher.core.BaseAgentEndpoint;
+
 
 /**
  * {@link PVPanelAgent} is a implementation of a {@link BaseAgentEndpoint}. It represents a dummy electriv vehicle.
@@ -120,14 +123,16 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
+            EVUpdate update= new EVUpdate(ev.getTimeToChargeRatio(), ev.getChargePower(), ev.getArriveHomeTime(), ev.getDesiredChargeTime(), ev.getPluggedIn(), ev.isCharging(), context.currentTime());
+            publishEvent(new EVUpdateEvent(currentStatus.getClusterId(),
+                    getAgentId(),
+                    currentStatus.getSession().getSessionId(), now(), update));
             if (ev.getPluggedIn()) {
                 synchronized (lock) {
-                    System.out.println("connnected");
+                    
                     MarketBasis mb = currentStatus.getMarketBasis();
                     double carChargeDesire = ev.getTimeToChargeRatio();
                     double demand = ev.getChargePower();
-                    System.out.println("carChargeDesire = " + carChargeDesire);
-                    System.out.println("charge " + ev.getCharging());
                     if (carChargeDesire == 1) {
                         publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand));
                     } else {
