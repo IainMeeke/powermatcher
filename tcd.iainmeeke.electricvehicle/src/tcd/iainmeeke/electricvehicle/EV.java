@@ -123,11 +123,11 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
-            EVUpdate update= new EVUpdate(ev.getTimeToChargeRatio(), ev.getCurrentChargeKwh(), ev.getArriveHomeTime(), ev.getDesiredChargeTime(), ev.getPluggedIn(), ev.isCharging(), context.currentTime());
+            EVUpdate update= new EVUpdate(ev.getTimeToChargeRatio(), ev.getCurrentChargeKwh(), ev.getChargingAt(), ev.getArriveHomeTime(), ev.getDesiredChargeTime(), ev.getPluggedIn(), ev.isCharging(), context.currentTime());
             publishEvent(new EVUpdateEvent(currentStatus.getClusterId(),
                     getAgentId(),
                     currentStatus.getSession().getSessionId(), now(), update));
-            if (ev.getPluggedIn()) {
+            if (ev.getPluggedIn()) { //this call also updates the EVSimulation
                 synchronized (lock) {
                     
                     MarketBasis mb = currentStatus.getMarketBasis();

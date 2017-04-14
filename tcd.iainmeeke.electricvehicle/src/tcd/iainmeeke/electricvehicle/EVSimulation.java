@@ -1,5 +1,7 @@
 package tcd.iainmeeke.electricvehicle;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -23,7 +25,7 @@ public class EVSimulation {
 	private double batteryCapacity; // the size of the battery in Kwh
 	private double chargePower; // the power the car charges at
 	private boolean pluggedIn; // is the car actually at home
-	private double charging; // the value the car is being charged at 
+	private double chargingAt; // the value the car is being charged at 
 	private long timeToCharge;// how long it will take to charge the car to the
 								// desired charge capacity
 	private long timeLastUpdated; //time in milliseconds that the car status was last updated
@@ -62,8 +64,9 @@ public class EVSimulation {
 		desiredChargeTime = getRandomDate(chargeByLower, chargeByHigher);
 		arriveHomeTime = getRandomDate(homeTimeLower, homeTimeHigher);
 		pluggedIn = true;
-		charging = 0;
+		chargingAt = 0;
 		this.context = context;
+		timeLastUpdated = context.currentTimeMillis();
 	}
 
 	/**
@@ -90,19 +93,24 @@ public class EVSimulation {
 	 * @return the factor of how much bigger time until is
 	 */
 	public double getTimeToChargeRatio() {
-		// how long will it take to charge the battery from current charge?
-		double timeToChargeHours = (batteryCapacity - currentChargeKwh) / chargePower;
-		double timeToChargeMilli = timeToChargeHours * 3600000;
-
-		// how long do we have until it needs to be charged
-		double timeUntilDesired = desiredChargeTime.getTimeInMillis() - context.currentTimeMillis();
-		// if it is going to take longer to charge than the time we have then
-		// give a full demand
-		if (timeUntilDesired < timeToChargeMilli) {
-			return 1.0;
+		if(this.currentChargeKwh == this.batteryCapacity){
+		    return 0;
 		}
-		double ratio = timeUntilDesired / timeToChargeMilli;
-		return ratio;
+		else{	    
+    	    // how long will it take to charge the battery from current charge?
+    		double timeToChargeHours = (batteryCapacity - currentChargeKwh) / chargePower;
+    		double timeToChargeMilli = timeToChargeHours * 3600000;
+    
+    		// how long do we have until it needs to be charged
+    		double timeUntilDesired = desiredChargeTime.getTimeInMillis() - context.currentTimeMillis();
+    		// if it is going to take longer to charge than the time we have then
+    		// give a full demand
+    		if (timeUntilDesired < timeToChargeMilli) {
+    			return 1.0;
+    		}
+    		double ratio = timeUntilDesired / timeToChargeMilli;
+    		return ratio;
+		}
 	}
 
 
@@ -112,6 +120,9 @@ public class EVSimulation {
 	 * Also updates how much the car is charging
 	 * Also update the desiredChargeTime and arriveHomeTime so they make sense
 	 * 
+	 * 
+	 * This method is called whenever a bid is made (through the isPluggedIn method) and whenever a priceUpdate happens (through the setCharging method)
+	 * This should keep everything accurate
 	 */
 	private void updatePlugChargeStatus() {
 	    
@@ -130,15 +141,14 @@ public class EVSimulation {
 		    pluggedIn = false;
 		}
 		//update how much has been charged
-		Long timeSpentChargingMillis = currentTimeMillis - timeLastUpdated;
-		double timeSpentChargingHours =  timeSpentChargingMillis/(1000*60*60); //convert the time charging to be a decimal in hours
-		currentChargeKwh = Math.min(currentChargeKwh + charging*timeSpentChargingHours, batteryCapacity); //charge the battery if it is not at capacity
+		BigDecimal timeSpentChargingMillis = BigDecimal.valueOf(currentTimeMillis - timeLastUpdated);
+		BigDecimal timeSpentChargingHours =  timeSpentChargingMillis.divide(BigDecimal.valueOf(1000*60*60), 10, RoundingMode.HALF_UP); //convert the time charging to be a decimal in hours
+		//LOGGER.info("\ncuurrentTimeMillis = {}\n timeLastUpdated = {}\ntimeSpentChargingHours db = {}\ntimeSpentChargingHours bd = {}", currentTimeMillis, timeLastUpdated, timeSpentChargingHours.doubleValue(), timeSpentChargingHours);
+		currentChargeKwh = Math.min(currentChargeKwh + chargingAt*timeSpentChargingHours.doubleValue(), batteryCapacity); //charge the battery if it is not at capacity
+		timeLastUpdated = currentTimeMillis;
 		//LOGGER.info("battery current charge = {}KWh", currentChargeKwh);
 	}
 
-	public static boolean isNotCharging() {
-        return NOT_CHARGING;
-    }
 
     public static Logger getLogger() {
         return LOGGER;
@@ -201,8 +211,9 @@ public class EVSimulation {
 			LOGGER.error("Should not be trying to change charge state if the car is not plugged in");
 			throw new IllegalArgumentException("Invalid change of charging state");
 		}
-		charging = power;
-		LOGGER.info("car charging is being set to " + charging);
+		chargingAt = power;
+		updatePlugChargeStatus();
+		LOGGER.info("car charging is being set to " + chargingAt);
 	}
 
 	public long timeToCharge(double percentage) {
@@ -233,14 +244,14 @@ public class EVSimulation {
 		return pluggedIn;
 	}
 
-	public double getCharging(){
-	    return charging;
+	public double getChargingAt(){
+	    return chargingAt;
 	}
 	/*
 	 * if the charge power is greater than 0 then the car is charging
 	 */
 	public boolean isCharging() {
-	    if(charging > 0){
+	    if(chargingAt > 0){
 	        return CHARGING;
 	    }
 	    return NOT_CHARGING;

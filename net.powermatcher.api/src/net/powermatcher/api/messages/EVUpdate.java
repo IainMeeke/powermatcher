@@ -7,6 +7,7 @@ public class EVUpdate {
 
     private final double carChargeDesire;
     private final double chargeLevel;
+    private final double chargingAt;
     private final Calendar arriveHomeTime;
     private final Calendar desiredChargeTime;
     private final boolean pluggedIn;
@@ -15,6 +16,7 @@ public class EVUpdate {
 
     public EVUpdate(double carChargeDesire,
                     double chargeLevel,
+                    double chargingAt,
                     Calendar arriveHomeTime,
                     Calendar desiredChargeTime,
                     boolean pluggedIn,
@@ -27,6 +29,7 @@ public class EVUpdate {
         this.pluggedIn = pluggedIn;
         this.isCharging = isCharging;
         this.simTime = simTime;
+        this.chargingAt = chargingAt;
     }
 
     public double getCarChargeDesire() {
@@ -55,5 +58,9 @@ public class EVUpdate {
 
     public Date getSimTime() {
         return simTime;
+    }
+
+    public double getChargingAt() {
+        return chargingAt;
     }
 }

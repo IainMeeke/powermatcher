@@ -75,6 +75,7 @@ public class CSVLogger
                                                                  "lastUpdateTime",
                                                                  "carChargeDesire",
                                                                  "chargeLevel",
+                                                                 "chargingAt",
                                                                  "arriveHomeTime",
                                                                  "desiredChargeTime",
                                                                  "pluggedIn",
@@ -92,15 +93,15 @@ public class CSVLogger
         @Meta.AD(name = "eventType", description = "The AgentEventType this logger has to log.")
         AgentEventType eventType();
 
-        @Meta.AD(deflt = "event_log_::yyyyMMdd::.csv",
+        @Meta.AD(deflt = "event_log_::yyyyMMdd::_::HHmm::.csv",
                  description = "The pattern for the file name of the log file. "
                                + "Dataformat strings are placed between the delimeter '::'")
         String logFilenamePattern();
 
-        @Meta.AD(deflt = "yyyy-MM-dd HH:mm:ss", description = "The date format for the timestamps in the log.")
+        @Meta.AD(deflt = "yyyy-MM-dd HH:mm:ss.sss", description = "The date format for the timestamps in the log.")
         String dateFormat();
 
-        @Meta.AD(deflt = ";", description = "The field separator the logger will use.")
+        @Meta.AD(deflt = ",", description = "The field separator the logger will use.")
         String separator();
 
         @Meta.AD(deflt = "/Users/iainmeeke/Documents/workspace/logs_powermatcher",
@@ -340,7 +341,7 @@ public class CSVLogger
             demandBuilder.append(d);
         }
 
-        return new String[] { getDateFormat().format(logRecord.getLogTime()),
+        return new String[] { getDateFormat().format(new Date(System.currentTimeMillis())),
                               logRecord.getClusterId(),
                               logRecord.getAgentId(),
                               marketBasis.getCommodity(),
@@ -367,6 +368,7 @@ public class CSVLogger
                               getDateFormat().format(logRecord.getEventTimestamp()),
                               Double.toString(ev.getCarChargeDesire()),
                               Double.toString(ev.getChargeLevel()),
+                              Double.toString(ev.getChargingAt()),
                               ev.getArriveHomeTime().getTime().toString(),
                               ev.getDesiredChargeTime().getTime().toString(),
                               String.valueOf(ev.isPluggedIn()),
@@ -385,7 +387,7 @@ public class CSVLogger
     private String[] createLineForPriceUpdateLog(PriceUpdateLogRecord logRecord) {
         MarketBasis marketbasis = logRecord.getPriceUpdate().getPrice().getMarketBasis();
 
-        return new String[] { getDateFormat().format(logRecord.getLogTime()),
+        return new String[] { getDateFormat().format(new Date(System.currentTimeMillis())),
                               logRecord.getClusterId(),
                               logRecord.getAgentId(),
                               marketbasis.getCommodity(),
