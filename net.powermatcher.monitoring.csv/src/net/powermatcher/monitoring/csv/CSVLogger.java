@@ -259,12 +259,15 @@ public class CSVLogger
      */
     private void writeLineToCSV(String[] line, File outputFile) {
         BufferedWriter w = null;
+
         try {
             w = new BufferedWriter(new FileWriter(outputFile, true));
 
-            for (String s : line) {
-                w.write(s);
-                w.write(separator);
+            for (int i = 0; i < line.length; i++) {
+                if (i != 0) {
+                    w.write(separator);
+                }
+                w.write(line[i]);
             }
             w.newLine();
         } catch (IOException e) {
