@@ -32,7 +32,6 @@ import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.api.monitoring.events.EVUpdateEvent;
 import net.powermatcher.core.BaseAgentEndpoint;
 
-
 /**
  * {@link PVPanelAgent} is a implementation of a {@link BaseAgentEndpoint}. It represents a dummy electriv vehicle.
  * {@link PVPanelAgent} creates a {@link PointBid} with random {@link PricePoint}s at a set interval. It does nothing
@@ -123,13 +122,14 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
-            EVUpdate update= new EVUpdate(ev.getTimeToChargeRatio(), ev.getCurrentChargeKwh(), ev.getChargingAt(), ev.getArriveHomeTime(), ev.getDesiredChargeTime(), ev.getPluggedIn(), ev.isCharging(), context.currentTime());
-            publishEvent(new EVUpdateEvent(currentStatus.getClusterId(),
-                    getAgentId(),
+            EVUpdate update = new EVUpdate(ev.getTimeToChargeRatio(), ev.getCurrentChargeKwh(), ev.getChargingAt(),
+                    ev.getArriveHomeTime(), ev.getDesiredChargeTime(), ev.getPluggedIn(), ev.isCharging(),
+                    context.currentTime());
+            publishEvent(new EVUpdateEvent(currentStatus.getClusterId(), getAgentId(),
                     currentStatus.getSession().getSessionId(), now(), update));
-            if (ev.getPluggedIn()) { //this call also updates the EVSimulation
+            if (ev.getPluggedIn()) { // this call also updates the EVSimulation
                 synchronized (lock) {
-                    
+
                     MarketBasis mb = currentStatus.getMarketBasis();
                     double carChargeDesire = ev.getTimeToChargeRatio();
                     double demand = ev.getChargePower();
@@ -138,30 +138,14 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                     } else {
                         publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice() / carChargeDesire, demand)
                                 .add((mb.getMaximumPrice() / carChargeDesire), 0).build()); // TODO: might need to add +
-                                                                                            // mb.getPriceIncrement() so
-                                                                                            // it isn't on the same
-                                                                                            // price
+                                                                                                                                                                          // mb.getPriceIncrement() so
+                                                                                                                                                                                  // it isn't on the same
+                                                                                                                                                                                  // price
 
                     }
                 }
             }
         }
-    }
-
-    /**
-     * overloaded function that actually handles the new price
-     * 
-     * @param newPrice
-     *            the new equilibrium price given by the auctioneer
-     *
-     */
-    private void handlePrice(Price newPrice) {
-        double demandForCurrentPrice = getLastBidUpdate().getBid().getDemandAt(newPrice); // the
-                                                                                          // demand
-                                                                                          // at
-                                                                                          // that
-                                                                                          // price
-        ev.setCharging(demandForCurrentPrice); // set the car to charge at this power
     }
 
     /**
@@ -171,16 +155,17 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
     public final void handlePriceUpdate(PriceUpdate priceUpdate) {
         super.handlePriceUpdate(priceUpdate);
         BidUpdate lastBidUpdate = getLastBidUpdate();
+        double demandForCurrentPrice = 0; //set to zero initially and then overwrite it if we need to
         if (lastBidUpdate == null) {
             LOGGER.info("Ignoring price update while no bid has been sent");
         } else if (lastBidUpdate.getBidNumber() != priceUpdate.getBidNumber()) {
             LOGGER.info("Ignoring price update on old bid (lastBid={} priceUpdate={})", lastBidUpdate.getBidNumber(),
                     priceUpdate.getBidNumber());
-        } else if (ev.getPluggedIn()) { // only handle the price if the car is
-                                        // plugged in
-            synchronized (lock) {
-                handlePrice(priceUpdate.getPrice());
-            }
+        } else if (ev.getPluggedIn()) { // only handle the price if the car is plugged in
+            demandForCurrentPrice = getLastBidUpdate().getBid().getDemandAt(priceUpdate.getPrice()); // the demand at that price
+        }
+        synchronized (lock) {
+            ev.setCharging(demandForCurrentPrice); // set the car to charge at this power
         }
     }
 
@@ -240,11 +225,11 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
 
         calendarChargeByLower.set(Calendar.YEAR, currentDate.get(Calendar.YEAR));
         calendarChargeByLower.set(Calendar.MONTH, currentDate.get(Calendar.MONTH));
-        calendarChargeByLower.set(Calendar.DATE, currentDate.get(Calendar.DATE)+1);
+        calendarChargeByLower.set(Calendar.DATE, currentDate.get(Calendar.DATE) + 1);
 
         calendarChargeByUpper.set(Calendar.YEAR, currentDate.get(Calendar.YEAR));
         calendarChargeByUpper.set(Calendar.MONTH, currentDate.get(Calendar.MONTH));
-        calendarChargeByUpper.set(Calendar.DATE, currentDate.get(Calendar.DATE)+1);
+        calendarChargeByUpper.set(Calendar.DATE, currentDate.get(Calendar.DATE) + 1);
 
         ev = new EVSimulation(EVType.valueOf(config.evModel()), super.context, calendarTimeHomeLower,
                 calendarTimeHomeUpper, calendarChargeByLower, calendarChargeByUpper);

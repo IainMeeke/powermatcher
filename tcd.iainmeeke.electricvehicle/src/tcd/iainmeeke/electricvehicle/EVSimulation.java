@@ -25,7 +25,7 @@ public class EVSimulation {
 	private double batteryCapacity; // the size of the battery in Kwh
 	private double chargePower; // the power the car charges at
 	private boolean pluggedIn; // is the car actually at home
-	private double chargingAt; // the value the car is being charged at 
+	private double chargingAt; // the value the car is being charged at in W
 	private long timeToCharge;// how long it will take to charge the car to the
 								// desired charge capacity
 	private long timeLastUpdated; //time in milliseconds that the car status was last updated
@@ -128,10 +128,12 @@ public class EVSimulation {
 	    
 		Long currentTimeMillis = context.currentTimeMillis();
 		//update the desiredCharge and arriveHome times
-		//if the current time is past the desired charge time then we have gone through a cycle and should set them to tomorrow
+		//if the current time is past the desired charge time then we have gone through a cycle and should set them to tomorrow 
+		// discharge the car
 		if(desiredChargeTime.getTimeInMillis() < currentTimeMillis){
 		    desiredChargeTime.add(Calendar.DATE, 1);
 		    arriveHomeTime.add(Calendar.DATE, 1);
+		    currentChargeKwh = 0;
 		}
 		//update plugged in
 		if (currentTimeMillis >= arriveHomeTime.getTimeInMillis() && currentTimeMillis <= desiredChargeTime.getTimeInMillis()) {
@@ -139,6 +141,10 @@ public class EVSimulation {
 		}
 		else{
 		    pluggedIn = false;
+		}
+		//update charginAt
+		if(!pluggedIn){
+		    chargingAt = 0;
 		}
 		//update how much has been charged
 		BigDecimal timeSpentChargingMillis = BigDecimal.valueOf(currentTimeMillis - timeLastUpdated);
