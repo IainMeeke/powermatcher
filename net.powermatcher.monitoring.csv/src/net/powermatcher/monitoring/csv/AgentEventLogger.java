@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import net.powermatcher.api.monitoring.events.AgentEvent;
 import net.powermatcher.api.monitoring.events.BidUpdateEvent;
 import net.powermatcher.api.monitoring.events.EVUpdateEvent;
+import net.powermatcher.api.monitoring.events.PVUpdateEvent;
 import net.powermatcher.api.monitoring.events.PriceUpdateEvent;
 
 /**
@@ -118,6 +119,8 @@ public abstract class AgentEventLogger
                                                      getDateFormat());
             } else if (event instanceof EVUpdateEvent) {
                 logRecord = new EVUpdateLogRecord((EVUpdateEvent) event, event.getTimestamp(), getDateFormat());
+            } else if (event instanceof PVUpdateEvent) {
+                logRecord = new PVUpdateLogRecord((PVUpdateEvent) event, event.getTimestamp(), getDateFormat());
             }
 
             addLogRecord(logRecord);

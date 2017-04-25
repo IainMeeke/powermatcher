@@ -20,8 +20,12 @@ import aQute.bnd.annotation.metatype.Configurable;
 import aQute.bnd.annotation.metatype.Meta;
 import net.powermatcher.api.AgentEndpoint;
 import net.powermatcher.api.data.Bid;
+import net.powermatcher.api.messages.EVUpdate;
+import net.powermatcher.api.messages.PVUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 import net.powermatcher.api.monitoring.ObservableAgent;
+import net.powermatcher.api.monitoring.events.EVUpdateEvent;
+import net.powermatcher.api.monitoring.events.PVUpdateEvent;
 import net.powermatcher.core.BaseAgentEndpoint;
 
 /**
@@ -32,23 +36,23 @@ import net.powermatcher.core.BaseAgentEndpoint;
  * @author FAN
  * @version 2.0
  */
-@Component(designateFactory = PVPanel.Config.class,
-           immediate = true,
-           provide = { ObservableAgent.class, AgentEndpoint.class })
-public class PVPanel
-    extends BaseAgentEndpoint
-    implements AgentEndpoint {
+@Component(
+        designateFactory = PVPanel.Config.class,
+        immediate = true,
+        provide = { ObservableAgent.class, AgentEndpoint.class })
+public class PVPanel extends BaseAgentEndpoint implements AgentEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PVPanel.class);
 
     private Config config;
 
     public static interface Config {
-        @Meta.AD(deflt = "pvpanel", description = "The unique identifier of the agent")
+        @Meta.AD(deflt = "PV", description = "The unique identifier of the agent")
         String agentId();
 
-        @Meta.AD(deflt = "concentrator",
-                 description = "The agent identifier of the parent matcher to which this agent should be connected")
+        @Meta.AD(
+                deflt = "concentrator",
+                description = "The agent identifier of the parent matcher to which this agent should be connected")
         public String desiredParentId();
 
         @Meta.AD(deflt = "5", description = "Number of seconds between bid updates")
@@ -56,49 +60,54 @@ public class PVPanel
 
         @Meta.AD(deflt = "53", description = "latitude of the solar panel")
         double latitude();
-        
+
         @Meta.AD(deflt = "-6", description = "longitude of the solar panel")
         double longitude();
-        
+
         @Meta.AD(deflt = "10", description = "system loss of the solar panel by percentage")
         double sysLoss();
-        
+
         @Meta.AD(deflt = "10", description = "Capacity of the solar panel in kW")
         double capacity();
-        
-        @Meta.AD(deflt = "0", description = "Does the solar panel have tracking? 0=no tracking, 1=Azimuth Tracking, 2=Azimuth and Tilt Tracking")
+
+        @Meta.AD(
+                deflt = "0",
+                description = "Does the solar panel have tracking? 0=no tracking, 1=Azimuth Tracking, 2=Azimuth and Tilt Tracking")
         int tracking();
-        
-        @Meta.AD(deflt = "35", description = "The angle the panel is at relative to horizontal (0 is facing directly upwards, 90 is vertically installed)")
+
+        @Meta.AD(
+                deflt = "35",
+                description = "The angle the panel is at relative to horizontal (0 is facing directly upwards, 90 is vertically installed)")
         int tilt();
-        
-        @Meta.AD(deflt = "180", description = "Compass direction of the panel. For latitude >= 0, 180 degrees is south facing")
+
+        @Meta.AD(
+                deflt = "180",
+                description = "Compass direction of the panel. For latitude >= 0, 180 degrees is south facing")
         int azim();
-        
+
     }
+
     /**
      * A delayed result-bearing action that can be cancelled.
      */
-    private ScheduledFuture<?> scheduledFuture;		
+    private ScheduledFuture<?> scheduledFuture;
     PowerOutput pv;
-    
-    
 
     /**
      * OSGi calls this method to activate a managed service.
      * 
      * @param properties
      *            the configuration properties
-     * @throws IOException 
-     * @throws ClientProtocolException 
+     * @throws IOException
+     * @throws ClientProtocolException
      */
     @Activate
     public void activate(Map<String, Object> properties) throws ClientProtocolException, IOException {
         config = Configurable.createConfigurable(Config.class, properties);
         init(config.agentId(), config.desiredParentId());
 
-        pv = new PowerOutput(config.latitude(), config.longitude(), config.sysLoss(), config.tracking(), config.capacity(), config.tilt(), config.azim());
-        double demand = pv.getDemand(new Date());//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
+        pv = new PowerOutput(config.latitude(), config.longitude(), config.sysLoss(), config.tracking(),
+                config.capacity(), config.tilt(), config.azim());
         LOGGER.info("Agent [{}], activated", config.agentId());
     }
 
@@ -119,7 +128,11 @@ public class PVPanel
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
         if (currentStatus.isConnected()) {
-            double demand = pv.getDemand(new Date());//get the demand for the current hour
+            double demand = pv.getDemand(context.currentTime());//get the demand for the current hour
+
+            PVUpdate update = new PVUpdate(demand);
+            publishEvent(new PVUpdateEvent(currentStatus.getClusterId(), getAgentId(),
+                    currentStatus.getSession().getSessionId(), now(), update));
             publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //flat is ok for a pvPanel
         }
     }

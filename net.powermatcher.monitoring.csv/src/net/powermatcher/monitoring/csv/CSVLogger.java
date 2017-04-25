@@ -24,6 +24,7 @@ import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.EVUpdate;
+import net.powermatcher.api.messages.PVUpdate;
 import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.api.monitoring.events.AgentEvent;
 
@@ -69,6 +70,7 @@ public class CSVLogger
                                                                     "maximumPrice",
                                                                     "priceValue",
                                                                     "lastUpdateTime" };
+
     private static final String[] EV_HEADER_ROW = new String[] { "logTime",
                                                                  "clusterId",
                                                                  "id",
@@ -82,6 +84,12 @@ public class CSVLogger
                                                                  "isCharging",
                                                                  "simTime" };
 
+    private static final String[] PV_HEADER_ROW = new String[] { "logTime",
+                                                                 "clusterId",
+                                                                 "id",
+                                                                 "lastUpdateTime",
+                                                                 "outputPower" };
+
     /**
      * OSGI configuration of the {@link CSVLogger}
      */
@@ -93,7 +101,7 @@ public class CSVLogger
         @Meta.AD(name = "eventType", description = "The AgentEventType this logger has to log.")
         AgentEventType eventType();
 
-        @Meta.AD(deflt = "event_log_::yyyyMMdd::_::HHmm::.csv",
+        @Meta.AD(deflt = "event_log_::HHmm::.csv",
                  description = "The pattern for the file name of the log file. "
                                + "Dataformat strings are placed between the delimeter '::'")
         String logFilenamePattern();
@@ -208,7 +216,11 @@ public class CSVLogger
             case EV_EVENT:
                 header = EV_HEADER_ROW;
                 break;
+            case PV_EVENT:
+                header = PV_HEADER_ROW;
+                break;
             default:
+                getLogger().error("No header for event type {}", getEventType());
                 break;
             }
             if (header != null) {
@@ -245,7 +257,8 @@ public class CSVLogger
             Matcher matcher = pattern.matcher(fileName);
             newFileName = matcher.replaceAll(date);
         }
-
+        File createLogLocation = new File(logLocation);
+        createLogLocation.mkdir(); // create the new directory if it doesn't exist
         return new File(logLocation + File.separator + newFileName);
     }
 
@@ -298,6 +311,8 @@ public class CSVLogger
                 output = createLineForPriceUpdateLog((PriceUpdateLogRecord) logRecord);
             } else if (logRecord instanceof EVUpdateLogRecord) {
                 output = createLineForEVUpdateLog((EVUpdateLogRecord) logRecord);
+            } else if (logRecord instanceof PVUpdateLogRecord) {
+                output = createLineForPVUpdateLog((PVUpdateLogRecord) logRecord);
             }
 
             if (output != null) {
@@ -305,6 +320,7 @@ public class CSVLogger
             }
             removeLogRecord(logRecord);
         }
+
         getLogger().info("CSVLogger [{}] wrote to {}", getLoggerId(), logFile);
 
     }
@@ -377,6 +393,15 @@ public class CSVLogger
                               String.valueOf(ev.isPluggedIn()),
                               String.valueOf(ev.isCharging()),
                               ev.getSimTime().toString() };
+    }
+
+    private String[] createLineForPVUpdateLog(PVUpdateLogRecord logRecord) {
+        PVUpdate pv = logRecord.getPvUpdate();
+        return new String[] { getDateFormat().format(new Date(System.currentTimeMillis())),
+                              logRecord.getClusterId(),
+                              logRecord.getAgentId(),
+                              getDateFormat().format(logRecord.getEventTimestamp()),
+                              Double.toString(pv.getOutputPower()) };
     }
 
     /**
