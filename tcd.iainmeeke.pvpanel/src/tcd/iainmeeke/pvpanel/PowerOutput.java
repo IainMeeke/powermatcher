@@ -150,7 +150,7 @@ public class PowerOutput {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-	    	double demand = Double.parseDouble(line.split(",")[1].trim());
+	    	double demand = Double.parseDouble(line.split(",")[1].trim()) * 1000;
 	    	hourlyDemand.put(dateKey,demand);
 	    }   
 	    scanner.close();
