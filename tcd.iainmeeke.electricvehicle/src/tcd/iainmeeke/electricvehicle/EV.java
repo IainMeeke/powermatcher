@@ -129,7 +129,6 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                     currentStatus.getSession().getSessionId(), now(), update));
             if (ev.getPluggedIn()) { // this call also updates the EVSimulation
                 synchronized (lock) {
-
                     MarketBasis mb = currentStatus.getMarketBasis();
                     double carChargeDesire = ev.getTimeToChargeRatio();
                     double demand = ev.getChargePower();
@@ -137,11 +136,7 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                         publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand));
                     } else {
                         publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice() / carChargeDesire, demand)
-                                .add((mb.getMaximumPrice() / carChargeDesire), 0).build()); // TODO: might need to add +
-                                                                                                                                                                          // mb.getPriceIncrement() so
-                                                                                                                                                                                  // it isn't on the same
-                                                                                                                                                                                  // price
-
+                                .add((mb.getMaximumPrice() / carChargeDesire), 0).build()); 
                     }
                 }
             }
