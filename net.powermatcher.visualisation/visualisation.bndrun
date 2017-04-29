@@ -1,6 +1,6 @@
 -runfw: org.apache.felix.framework;version='[4.4.0,4.4.0]'
 -runee: JavaSE-1.7
--runrequires:  \
+-runrequires: \
 	osgi.identity;filter:='(osgi.identity=net.powermatcher.visualisation)',\
 	osgi.identity;filter:='(osgi.identity=net.powermatcher.examples)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.webconsole)',\
@@ -12,7 +12,10 @@
 	osgi.identity;filter:='(osgi.identity=ch.qos.logback.classic)',\
 	osgi.identity;filter:='(osgi.identity=ch.qos.logback.core)',\
 	osgi.identity;filter:='(osgi.identity=net.powermatcher.core)',\
-	osgi.identity;filter:='(osgi.identity=osgi.cmpn)'
+	osgi.identity;filter:='(osgi.identity=osgi.cmpn)',\
+	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.electricvehicle)',\
+	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.windturbine)',\
+	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.pvpanel)'
 	
 -runbundles:  \
 	biz.aQute.bnd.annotation;version='[2.4.0,2.4.1)',\

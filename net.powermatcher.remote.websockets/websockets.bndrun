@@ -12,11 +12,11 @@
 	osgi.identity;filter:='(osgi.identity=net.powermatcher.remote.websockets.server)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.webconsole.plugins.ds)',\
 	osgi.identity;filter:='(osgi.identity=org.apache.felix.metatype)',\
-	osgi.identity;filter:='(osgi.identity=net.powermatcher.examples)',\
 	osgi.identity;filter:='(osgi.identity=net.powermatcher.monitoring.csv)',\
 	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.pvpanel)',\
 	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.windturbine)',\
-	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.electricvehicle)'
+	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.electricvehicle)',\
+	osgi.identity;filter:='(osgi.identity=net.powermatcher.visualisation)'
 -runbundles: \
 	biz.aQute.bnd.annotation;version='[2.4.0,2.4.1)',\
 	ch.qos.logback.classic;version='[1.1.2,1.1.3)',\
@@ -25,7 +25,6 @@
 	flexiblepower.api;version='[3.0.0,3.0.1)',\
 	net.powermatcher.api;version=snapshot,\
 	net.powermatcher.core;version=snapshot,\
-	net.powermatcher.examples;version=snapshot,\
 	net.powermatcher.monitoring.csv;version=snapshot,\
 	net.powermatcher.remote.websockets.client;version=snapshot,\
 	net.powermatcher.remote.websockets.server;version=snapshot,\
@@ -46,4 +45,5 @@
 	org.apache.httpcomponents.httpclient;version='[4.3.4,4.3.5)',\
 	org.apache.httpcomponents.httpcore;version='[4.3.2,4.3.3)',\
 	tcd.iainmeeke.windturbine;version=snapshot,\
-	tcd.iainmeeke.electricvehicle;version=snapshot
+	tcd.iainmeeke.electricvehicle;version=snapshot,\
+	net.powermatcher.visualisation;version=snapshot

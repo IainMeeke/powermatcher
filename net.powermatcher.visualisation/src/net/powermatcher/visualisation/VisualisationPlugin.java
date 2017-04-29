@@ -14,11 +14,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import net.powermatcher.visualisation.models.LevelModel;
-import net.powermatcher.visualisation.models.MenuItemModel;
-import net.powermatcher.visualisation.models.NodeModel;
-import net.powermatcher.visualisation.models.SubMenuItemModel;
-
 import org.apache.commons.io.IOUtils;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
@@ -26,15 +21,19 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+
 import aQute.bnd.annotation.component.Activate;
 import aQute.bnd.annotation.component.Component;
 import aQute.bnd.annotation.component.Reference;
 import aQute.bnd.annotation.metatype.Configurable;
 import aQute.bnd.annotation.metatype.Meta;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import net.powermatcher.visualisation.models.LevelModel;
+import net.powermatcher.visualisation.models.MenuItemModel;
+import net.powermatcher.visualisation.models.NodeModel;
+import net.powermatcher.visualisation.models.SubMenuItemModel;
 
 /**
  * {@link HttpServlet} used by the visualizer frontend.
@@ -45,7 +44,7 @@ import com.google.gson.JsonObject;
 @Component(
            provide = Servlet.class,
            properties = { "felix.webconsole.title=Powermatcher cluster visualizer",
-                         "felix.webconsole.label=pm-cluster-visualizer" },
+                          "felix.webconsole.label=pm-cluster-visualizer" },
            immediate = true,
            designateFactory = VisualisationPlugin.Config.class)
 public class VisualisationPlugin
@@ -69,10 +68,10 @@ public class VisualisationPlugin
         @Meta.AD(
                  required = true,
                  deflt = "Auctioneer::net.powermatcher.core.auctioneer.Auctioneer, Concentrator::net.powermatcher.core.concentrator.Concentrator,"
-                         + "DeviceAgent::net.powermatcher.examples.Freezer, DeviceAgent::net.powermatcher.examples.PVPanelAgent",
+                         + "DeviceAgent::tcd.iainmeeke.electricvehicle.EV, DeviceAgent::tcd.iainmeeke.pvpanel.PVPanel, DeviceAgent::tcd.iainmeeke.windturbine.WindTurbine",
                  description = "A list of all the OSGi Menu items that have to be used. It's menu::submenu")
-                List<String>
-                menu();
+        List<String>
+            menu();
     }
 
     /**
