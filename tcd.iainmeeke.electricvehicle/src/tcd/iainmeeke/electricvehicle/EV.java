@@ -136,7 +136,7 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                         publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand));
                     } else {
                         publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice() / carChargeDesire, demand)
-                                .add((mb.getMaximumPrice() / carChargeDesire), 0).build()); 
+                                .add((mb.getMaximumPrice() / carChargeDesire), 0).build());
                     }
                 }
             }
@@ -158,9 +158,9 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                     priceUpdate.getBidNumber());
         } else if (ev.getPluggedIn()) { // only handle the price if the car is plugged in
             demandForCurrentPrice = getLastBidUpdate().getBid().getDemandAt(priceUpdate.getPrice()); // the demand at that price
-        }
-        synchronized (lock) {
-            ev.setCharging(demandForCurrentPrice); // set the car to charge at this power
+            synchronized (lock) {
+                ev.setCharging(demandForCurrentPrice); // set the car to charge at this power
+            }
         }
     }
 
