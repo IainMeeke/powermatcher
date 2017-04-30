@@ -133,7 +133,7 @@ public class PVPanel extends BaseAgentEndpoint implements AgentEndpoint {
             PVUpdate update = new PVUpdate(demand);
             publishEvent(new PVUpdateEvent(currentStatus.getClusterId(), getAgentId(),
                     currentStatus.getSession().getSessionId(), now(), update));
-            publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //flat is ok for a pvPanel
+            publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), -demand)); //flat is ok for a pvPanel
         }
     }
 
