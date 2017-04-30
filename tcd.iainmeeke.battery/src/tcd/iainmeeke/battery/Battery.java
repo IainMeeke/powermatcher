@@ -17,6 +17,9 @@ import aQute.bnd.annotation.metatype.Configurable;
 import aQute.bnd.annotation.metatype.Meta;
 import net.powermatcher.api.AgentEndpoint;
 import net.powermatcher.api.data.Bid;
+import net.powermatcher.api.data.MarketBasis;
+import net.powermatcher.api.data.PointBidBuilder;
+import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.core.BaseAgentEndpoint;
@@ -29,49 +32,48 @@ import net.powermatcher.core.BaseAgentEndpoint;
  * @author FAN
  * @version 2.0
  */
-@Component(designateFactory = Battery.Config.class,
-           immediate = true,
-           provide = { ObservableAgent.class, AgentEndpoint.class })
-public class Battery
-    extends BaseAgentEndpoint
-    implements AgentEndpoint {
+@Component(
+        designateFactory = Battery.Config.class,
+        immediate = true,
+        provide = { ObservableAgent.class, AgentEndpoint.class })
+public class Battery extends BaseAgentEndpoint implements AgentEndpoint {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Battery.class);
-
+    private final Object lock = new Object();
     private Config config;
 
     public static interface Config {
-        @Meta.AD(deflt = "Battery", description = "The unique identifier of the agent")
+        @Meta.AD(deflt = "bat", description = "The unique identifier of the agent")
         String agentId();
 
-        @Meta.AD(deflt = "concentrator",
-                 description = "The agent identifier of the parent matcher to which this agent should be connected")
+        @Meta.AD(
+                deflt = "concentrator",
+                description = "The agent identifier of the parent matcher to which this agent should be connected")
         public String desiredParentId();
 
-        @Meta.AD(deflt = "5", description = "Number of seconds between bid updates")
+        @Meta.AD(deflt = "30", description = "Number of seconds between bid updates")
         long bidUpdateRate();
 
-        @Meta.AD(deflt = "-1", description = "The mimimum value of the random demand.")
-        double minimumDemand();
+        @Meta.AD(deflt = "13500", description = "Capacity of the battery.")
+        double batteryCapacity();
 
-        @Meta.AD(deflt = "-2000000", description = "The maximum value the random demand.")
-        double maximumDemand();
+        @Meta.AD(deflt = "2000", description = "The Battery Charge power")
+        double batteryCharge();
+
+        @Meta.AD(deflt = "2000", description = "The Battery Output power")
+        double batteryOutput();
     }
 
     /**
      * A delayed result-bearing action that can be cancelled.
      */
-    private ScheduledFuture<?> scheduledFuture;		
+    private ScheduledFuture<?> scheduledFuture;
 
-    /**
-     * The mimimum value of the random demand.
-     */
-    private double minimumDemand;
+    private double batteryCapacity; //the size of the battery
+    private double chargePower; //the power the battery can charge at
+    private double outputPower;
 
-    /**
-     * The maximum value the random demand.
-     */
-    private double maximumDemand;
+    private BatterySimulation battery;
 
     /**
      * OSGi calls this method to activate a managed service.
@@ -84,8 +86,9 @@ public class Battery
         config = Configurable.createConfigurable(Config.class, properties);
         init(config.agentId(), config.desiredParentId());
 
-        minimumDemand = config.minimumDemand();
-        maximumDemand = config.maximumDemand();
+        batteryCapacity = config.batteryCapacity();
+        chargePower = config.batteryCharge();
+        outputPower = config.batteryOutput();
 
         LOGGER.info("Agent [{}], activated", config.agentId());
     }
@@ -106,9 +109,24 @@ public class Battery
      */
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
+
         if (currentStatus.isConnected()) {
-            double demand = 0.0;//need to actually get a bid from somewhere// minimumDemand + (maximumDemand - minimumDemand) * generator.nextDouble();
-            publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand)); //make this not flat, look at bid in freezer
+            battery.updateStatus();
+            MarketBasis mb = currentStatus.getMarketBasis();
+            double batteryLevel = battery.getCurrentChargeLevel();
+            double demand = battery.getChargePower();
+            double output = battery.getOutputPower();
+            
+            synchronized (lock) {
+                if (batteryLevel == 0) { 
+                    publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), demand));
+                } else if (batteryLevel == 1) {
+                    publishBid(Bid.flatDemand(currentStatus.getMarketBasis(), -output));
+                } else {
+                    publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice() * (1-batteryLevel), demand)
+                            .add(mb.getMaximumPrice() * (1-batteryLevel), -output).build());
+                }
+            }
         }
     }
 
@@ -118,7 +136,19 @@ public class Battery
     @Override
     public synchronized void handlePriceUpdate(PriceUpdate priceUpdate) {
         super.handlePriceUpdate(priceUpdate);
-        // Nothing to control for a Battery
+        BidUpdate lastBidUpdate = getLastBidUpdate();
+        double demandForCurrentPrice = 0; //set to zero initially and then overwrite it if we need to
+        if (lastBidUpdate == null) {
+            LOGGER.info("Ignoring price update while no bid has been sent");
+        } else if (lastBidUpdate.getBidNumber() != priceUpdate.getBidNumber()) {
+            LOGGER.info("Ignoring price update on old bid (lastBid={} priceUpdate={})", lastBidUpdate.getBidNumber(),
+                    priceUpdate.getBidNumber());
+        } else {
+            demandForCurrentPrice = getLastBidUpdate().getBid().getDemandAt(priceUpdate.getPrice()); // the demand at that price
+            synchronized (lock) {
+                battery.setChargingAt(demandForCurrentPrice); // set the battery to charge at this power
+            }
+        }
     }
 
     /**
@@ -127,6 +157,7 @@ public class Battery
     @Override
     public void setContext(FlexiblePowerContext context) {
         super.setContext(context);
+        battery = new BatterySimulation(super.context, outputPower, batteryCapacity, chargePower);
         scheduledFuture = context.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
