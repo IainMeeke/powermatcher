@@ -184,6 +184,7 @@ public abstract class BaseMatcherEndpoint
         status = NOT_CONNECTED;
         agentId = null;
         bidCache = null;
+        predictionCache = null;
         bidUpdater = null;
     }
 
@@ -219,6 +220,7 @@ public abstract class BaseMatcherEndpoint
         bidCache = new BidCache(marketBasis);
         status = new Connected(clusterId, marketBasis);
         bidUpdater = new RateLimitedBidPublisher(minTimeBetweenUpdates);
+        predictionCache = new PredictionCache();
     }
 
     public void unconfigure() {
@@ -260,6 +262,7 @@ public abstract class BaseMatcherEndpoint
             if (session.equals(foundSession)) {
                 sessions.remove(session.getAgentId());
                 bidCache.removeBidOfAgent(session.getAgentId());
+                predictionCache.removePredictionOfAgent(session.getAgentId());
                 bidUpdater.schedule();
                 LOGGER.info("Agent disconnected with session [{}]", session.getSessionId());
             }
@@ -334,6 +337,7 @@ public abstract class BaseMatcherEndpoint
 
     @Override
     public void handlePredictionUpdate(Session session, PredictionUpdate predictionUpdate) {
+
         Agent.Status currentStatus = getStatus();
 
         if (!currentStatus.isConnected()) {
@@ -347,7 +351,6 @@ public abstract class BaseMatcherEndpoint
         if (predictionUpdate == null) {
             throw new InvalidParameterException("Null Prediction");
         }
-
         predictionCache.updateAgentPrediction(agentId, predictionUpdate);
 
     }

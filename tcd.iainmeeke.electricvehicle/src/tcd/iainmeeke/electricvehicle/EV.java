@@ -122,6 +122,7 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
      */
     void doBidUpdate() {
         AgentEndpoint.Status currentStatus = getStatus();
+       
         if (currentStatus.isConnected()) {
             EVUpdate update = new EVUpdate(ev.getTimeToChargeRatio(), ev.getCurrentChargeKwh(), ev.getChargingAt(),
                     ev.getArriveHomeTime(), ev.getDesiredChargeTime(), ev.getPluggedIn(), ev.isCharging(),
@@ -139,11 +140,12 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                         publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice() / carChargeDesire, demand)
                                 .add((mb.getMaximumPrice() / carChargeDesire), 0).build());
                     }
-                    Calendar predDate = ev.getArriveHomeTime();
-                    Prediction prediction = new Prediction("test", 1, predDate, 1000);
-                    publishPrediction(prediction);
+                    
                 }
             }
+            Calendar predDate = ev.getArriveHomeTime();
+            Prediction prediction = new Prediction("test", Math.random(), predDate, 1000);
+            publishPrediction(prediction);
         }
     }
 

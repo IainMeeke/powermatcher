@@ -230,7 +230,7 @@ public abstract class BaseAgentEndpoint
             lastPredictionUpdate = update;
 
             status.getSession().updatePrediction(update);
-            System.out.println(update.getPreditcionNumber());
+
             return update;
         } else {
             return null;

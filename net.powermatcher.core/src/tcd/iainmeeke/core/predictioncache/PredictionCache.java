@@ -44,7 +44,7 @@ public class PredictionCache {
         }
     }
 
-    public void removeBidOfAgent(String agentId) {
+    public void removePredictionOfAgent(String agentId) {
         predictionChanged = true;
         agentPredictions.remove(agentId);
     }
