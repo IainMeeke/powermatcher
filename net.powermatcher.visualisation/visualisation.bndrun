@@ -15,7 +15,8 @@
 	osgi.identity;filter:='(osgi.identity=osgi.cmpn)',\
 	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.electricvehicle)',\
 	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.windturbine)',\
-	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.pvpanel)'
+	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.pvpanel)',\
+	osgi.identity;filter:='(osgi.identity=tcd.iainmeeke.battery)'
 	
 -runbundles:  \
 	biz.aQute.bnd.annotation;version='[2.4.0,2.4.1)',\

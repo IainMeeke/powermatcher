@@ -68,7 +68,7 @@ public class VisualisationPlugin
         @Meta.AD(
                  required = true,
                  deflt = "Auctioneer::net.powermatcher.core.auctioneer.Auctioneer, Concentrator::net.powermatcher.core.concentrator.Concentrator,"
-                         + "DeviceAgent::tcd.iainmeeke.electricvehicle.EV, DeviceAgent::tcd.iainmeeke.pvpanel.PVPanel, DeviceAgent::tcd.iainmeeke.windturbine.WindTurbine",
+                         + "DeviceAgent::tcd.iainmeeke.electricvehicle.EV, DeviceAgent::tcd.iainmeeke.pvpanel.PVPanel, DeviceAgent::tcd.iainmeeke.windturbine.WindTurbine, DeviceAgent::tcd.iainmeeke.battery",
                  description = "A list of all the OSGi Menu items that have to be used. It's menu::submenu")
         List<String>
             menu();
