@@ -2,6 +2,11 @@ package net.powermatcher.core.auctioneer;
 
 import java.util.Map;
 
+import aQute.bnd.annotation.component.Activate;
+import aQute.bnd.annotation.component.Component;
+import aQute.bnd.annotation.component.Deactivate;
+import aQute.bnd.annotation.metatype.Configurable;
+import aQute.bnd.annotation.metatype.Meta;
 import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
@@ -10,11 +15,7 @@ import net.powermatcher.api.monitoring.ObservableAgent;
 import net.powermatcher.core.BaseMatcherEndpoint;
 import net.powermatcher.core.bidcache.AggregatedBid;
 import net.powermatcher.core.concentrator.Concentrator;
-import aQute.bnd.annotation.component.Activate;
-import aQute.bnd.annotation.component.Component;
-import aQute.bnd.annotation.component.Deactivate;
-import aQute.bnd.annotation.metatype.Configurable;
-import aQute.bnd.annotation.metatype.Meta;
+import tcd.iainmeeke.core.predictioncache.AggregatedPrediction;
 
 /**
  * <p>
@@ -103,5 +104,11 @@ public class Auctioneer
     protected void performUpdate(AggregatedBid aggregatedBid) {
         Price price = aggregatedBid.calculateIntersection(0);
         publishPrice(price, aggregatedBid);
+    }
+
+    @Override
+    protected void performUpdate(AggregatedPrediction aggregatedPrediction) {
+        System.out.println("recieved a prediction update");
+
     }
 }

@@ -15,6 +15,7 @@ import net.powermatcher.api.Session;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.Price;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 import net.powermatcher.api.monitoring.events.AggregatedBidEvent;
 import net.powermatcher.api.monitoring.events.IncomingBidUpdateEvent;
@@ -23,6 +24,8 @@ import net.powermatcher.core.auctioneer.Auctioneer;
 import net.powermatcher.core.bidcache.AggregatedBid;
 import net.powermatcher.core.bidcache.BidCache;
 import net.powermatcher.core.concentrator.Concentrator;
+import tcd.iainmeeke.core.predictioncache.AggregatedPrediction;
+import tcd.iainmeeke.core.predictioncache.PredictionCache;
 
 /**
  * This is an abstract class providing base functionality for a {@link MatcherEndpoint}. This class can be extended to
@@ -132,6 +135,11 @@ public abstract class BaseMatcherEndpoint
                                                         now(),
                                                         aggregatedBid));
                     performUpdate(aggregatedBid);
+                    if (predictionCache != null) {
+                        AggregatedPrediction aggregatedPrediction = predictionCache.aggregate();
+                        performUpdate(aggregatedPrediction);
+                    }
+
                 }
             } catch (RuntimeException e) {
                 LOGGER.error("doBidUpate failed for matcher " + getAgentId(), e);
@@ -169,6 +177,7 @@ public abstract class BaseMatcherEndpoint
     private volatile String agentId;
     private volatile Agent.Status status;
     private volatile BidCache bidCache;
+    private volatile PredictionCache predictionCache;
     private volatile RateLimitedBidPublisher bidUpdater;
 
     public BaseMatcherEndpoint() {
@@ -284,7 +293,13 @@ public abstract class BaseMatcherEndpoint
         return bidCache.aggregate();
     }
 
+    public final AggregatedPrediction aggregatePrediction() {
+        return predictionCache.aggregate();
+    }
+
     protected abstract void performUpdate(AggregatedBid aggregatedBid);
+
+    protected abstract void performUpdate(AggregatedPrediction aggregatedPrediction);
 
     @Override
     public void handleBidUpdate(Session session, BidUpdate bidUpdate) {
@@ -315,5 +330,25 @@ public abstract class BaseMatcherEndpoint
                                                 bidUpdate));
 
         bidUpdater.schedule();
+    }
+
+    @Override
+    public void handlePredictionUpdate(Session session, PredictionUpdate predictionUpdate) {
+        Agent.Status currentStatus = getStatus();
+
+        if (!currentStatus.isConnected()) {
+            throw new IllegalStateException("Not connected to the cluster");
+        }
+
+        if (session == null || !sessions.containsKey(session.getAgentId())) {
+            throw new IllegalStateException("No session found");
+        }
+
+        if (predictionUpdate == null) {
+            throw new InvalidParameterException("Null Prediction");
+        }
+
+        predictionCache.updateAgentPrediction(agentId, predictionUpdate);
+
     }
 }

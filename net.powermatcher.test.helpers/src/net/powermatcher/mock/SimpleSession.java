@@ -7,6 +7,7 @@ import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.Session;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 
 public class SimpleSession
@@ -84,6 +85,12 @@ public class SimpleSession
     @Override
     public void updateBid(BidUpdate bidUpdate) {
         matcher.handleBidUpdate(this, bidUpdate);
+    }
+
+    @Override
+    public void updatePrediction(PredictionUpdate update) {
+        matcher.handlePredictionUpdate(this, update);
+
     }
 
 }

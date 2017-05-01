@@ -1,2 +1,2 @@
-@aQute.bnd.annotation.Version("2.0.0.${tstamp}")
+@aQute.bnd.annotation.Version("2.1.0")
 package net.powermatcher.core;

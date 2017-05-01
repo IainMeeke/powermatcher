@@ -7,7 +7,9 @@ import net.powermatcher.api.AgentEndpoint;
 import net.powermatcher.api.Session;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
+import net.powermatcher.api.data.Prediction;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 import net.powermatcher.api.monitoring.events.IncomingPriceUpdateEvent;
 import net.powermatcher.api.monitoring.events.OutgoingBidUpdateEvent;
@@ -90,17 +92,23 @@ public abstract class BaseAgentEndpoint
 
     private final AtomicInteger bidNumberGenerator;
 
+    private final AtomicInteger predictionNumberGenerator;
+
     private volatile AgentEndpoint.Status status;
 
     private volatile BidUpdate lastBidUpdate;
+
+    private volatile PredictionUpdate lastPredictionUpdate;
 
     private String agentId, desiredParentId;
 
     public BaseAgentEndpoint() {
         bidNumberGenerator = new AtomicInteger();
+        predictionNumberGenerator = new AtomicInteger();
         status = NOT_CONNECTED;
         lastBidUpdate = null;
         agentId = null;
+        lastPredictionUpdate = null;
         desiredParentId = null;
     }
 
@@ -153,7 +161,9 @@ public abstract class BaseAgentEndpoint
         }
 
         bidNumberGenerator.set(0);
+        predictionNumberGenerator.set(0);
         lastBidUpdate = null;
+        lastPredictionUpdate = null;
         status = new Connected(session);
     }
 
@@ -203,6 +213,24 @@ public abstract class BaseAgentEndpoint
                                                     update));
             LOGGER.debug("Sending bid [{}] to {}", update, status.getSession().getMatcherId());
             status.getSession().updateBid(update);
+            return update;
+        } else {
+            return null;
+        }
+    }
+
+    protected final PredictionUpdate publishPrediction(Prediction newPrediction) {
+        AgentEndpoint.Status currentStatus = getStatus();
+        if (currentStatus.isConnected()) {
+            if (lastPredictionUpdate != null && newPrediction.equals(lastPredictionUpdate.getPrediction())) {
+                // same as the last update
+                return lastPredictionUpdate;
+            }
+            PredictionUpdate update = new PredictionUpdate(newPrediction, predictionNumberGenerator.incrementAndGet());
+            lastPredictionUpdate = update;
+
+            status.getSession().updatePrediction(update);
+            System.out.println(update.getPreditcionNumber());
             return update;
         } else {
             return null;

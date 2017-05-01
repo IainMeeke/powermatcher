@@ -7,6 +7,7 @@ import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.Session;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 
 /**
@@ -116,5 +117,11 @@ public class MockMatcherAgent
                 throw new AssertionError(Arrays.toString(expectedDemand) + " != " + Arrays.toString(realDemand));
             }
         }
+    }
+
+    @Override
+    public void handlePredictionUpdate(Session session, PredictionUpdate predictionUpdate) {
+        // TODO Auto-generated method stub
+
     }
 }

@@ -3,6 +3,7 @@ package net.powermatcher.api;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 
 /**
@@ -76,4 +77,6 @@ public interface Session {
      * This method can be called by any object, event the {@link AgentEndpoint} or {@link MatcherEndpoint} themselves.
      */
     void disconnect();
+
+    void updatePrediction(PredictionUpdate update);
 }

@@ -11,6 +11,7 @@ import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.Session;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 
 public class SessionImpl
@@ -121,5 +122,20 @@ public class SessionImpl
         agentEndpoint.matcherEndpointDisconnected(this);
         matcherEndpoint.agentEndpointDisconnected(this);
         potentialSession.disconnected();
+    }
+
+    @Override
+    public void updatePrediction(final PredictionUpdate predictionUpdate) {
+        if (connected) {
+            context.submit(new Runnable() {
+                @Override
+                public void run() {
+                    matcherEndpoint.handlePredictionUpdate(SessionImpl.this, predictionUpdate);
+                }
+            });
+        } else {
+            LOGGER.debug("Sending a prediction update while not connected form agent [{}]", agentId);
+        }
+
     }
 }

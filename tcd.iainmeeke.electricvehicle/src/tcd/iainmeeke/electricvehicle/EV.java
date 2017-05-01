@@ -24,6 +24,7 @@ import net.powermatcher.api.AgentEndpoint;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.PointBidBuilder;
+import net.powermatcher.api.data.Prediction;
 import net.powermatcher.api.data.Price;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.EVUpdate;
@@ -138,6 +139,9 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
                         publishBid(new PointBidBuilder(mb).add(mb.getMaximumPrice() / carChargeDesire, demand)
                                 .add((mb.getMaximumPrice() / carChargeDesire), 0).build());
                     }
+                    Calendar predDate = ev.getArriveHomeTime();
+                    Prediction prediction = new Prediction("test", 1, predDate, 1000);
+                    publishPrediction(prediction);
                 }
             }
         }

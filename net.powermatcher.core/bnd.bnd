@@ -3,11 +3,12 @@
 
 Bundle-Version: 3.0.0.${tstamp}
 Service-Component:  *
-Export-Package:  \
+Export-Package: \
 	net.powermatcher.core,\
 	net.powermatcher.core.auctioneer,\
 	net.powermatcher.core.bidcache,\
 	net.powermatcher.core.concentrator,\
-	net.powermatcher.core.proxy
+	net.powermatcher.core.proxy,\
+	tcd.iainmeeke.core.predictioncache
 
 Require-Capability: flexiblepower.context; filter:="(runtime=powermatcher)"

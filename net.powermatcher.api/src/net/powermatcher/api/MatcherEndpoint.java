@@ -3,6 +3,7 @@ package net.powermatcher.api;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.Price;
 import net.powermatcher.api.messages.BidUpdate;
+import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 
 /**
@@ -46,4 +47,6 @@ public interface MatcherEndpoint
      *            The new {@link BidUpdate}.
      */
     void handleBidUpdate(Session session, BidUpdate bidUpdate);
+
+    void handlePredictionUpdate(Session session, PredictionUpdate predictionUpdate);
 }
