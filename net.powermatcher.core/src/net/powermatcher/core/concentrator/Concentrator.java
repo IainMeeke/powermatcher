@@ -68,6 +68,7 @@ public class Concentrator
         @Override
         protected void performUpdate(AggregatedPrediction aggregatedPrediction) {
             // Prediction prediction = transformPrediction(aggregatedPrediction);
+            System.out.println("got a prediction in concentrator");
             PredictionUpdate predictionUpdate = publishPrediction(aggregatedPrediction);
         }
     }
