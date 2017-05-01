@@ -12,8 +12,10 @@ import javax.measure.unit.SI;
 import net.powermatcher.api.Agent;
 import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.Session;
+import net.powermatcher.api.data.Allocation;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.Price;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
@@ -292,6 +294,23 @@ public abstract class BaseMatcherEndpoint
         }
     }
 
+    public void publishAllocation(Allocation allocation) {
+        // Map<String, Integer> referecnes = aggregatedPrediction.getAgentPredictionReferences();
+
+        for (Session session : sessions.values()) {
+            // Integer predictionNumber = referecnes.get(session.getAgentId());
+            // if (predictionNumber != null) {
+            AllocationUpdate allocationUpdate = new AllocationUpdate(allocation);
+            try {
+                session.updateAllocation(allocationUpdate);
+            } catch (RuntimeException ex) {
+                LOGGER.warn("Unexpected exception while sending allocation update to {}", session.getAgentId(), ex);
+                // }
+            }
+        }
+
+    }
+
     public final AggregatedBid aggregate() {
         return bidCache.aggregate();
     }
@@ -352,6 +371,5 @@ public abstract class BaseMatcherEndpoint
             throw new InvalidParameterException("Null Prediction");
         }
         predictionCache.updateAgentPrediction(agentId, predictionUpdate);
-
     }
 }

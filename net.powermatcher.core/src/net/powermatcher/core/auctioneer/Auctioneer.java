@@ -8,6 +8,7 @@ import aQute.bnd.annotation.component.Deactivate;
 import aQute.bnd.annotation.metatype.Configurable;
 import aQute.bnd.annotation.metatype.Meta;
 import net.powermatcher.api.MatcherEndpoint;
+import net.powermatcher.api.data.Allocation;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.Price;
@@ -109,6 +110,7 @@ public class Auctioneer
     @Override
     protected void performUpdate(AggregatedPrediction aggregatedPrediction) {
         System.out.println("recieved a prediction update");
-
+        Allocation allocation = new Allocation(1);
+        publishAllocation(allocation);
     }
 }

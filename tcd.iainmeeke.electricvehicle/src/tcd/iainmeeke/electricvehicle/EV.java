@@ -26,6 +26,7 @@ import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.PointBidBuilder;
 import net.powermatcher.api.data.Prediction;
 import net.powermatcher.api.data.Price;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.EVUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
@@ -170,6 +171,11 @@ public class EV extends BaseAgentEndpoint implements AgentEndpoint {
         }
     }
 
+    @Override
+    public final void handleAllocationUpdate(AllocationUpdate allocationUpdate){
+        super.handleAllocationUpdate(allocationUpdate);
+        System.out.println("received the allocation update in EV");
+    }
     /**
      * {@inheritDoc}
      */

@@ -14,6 +14,7 @@ import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.Session;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.Price;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
@@ -161,6 +162,12 @@ public class Concentrator
         } catch (IllegalArgumentException ex) {
             LOGGER.warn(ex.getMessage(), ex);
         }
+    }
+
+    @Override
+    public void handleAllocationUpdate(AllocationUpdate allocationUpdate) {
+        super.handleAllocationUpdate(allocationUpdate);
+        matcherPart.publishAllocation(allocationUpdate.getAllocation());
     }
 
     /**

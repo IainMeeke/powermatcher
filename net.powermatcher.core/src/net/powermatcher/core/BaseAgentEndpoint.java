@@ -8,6 +8,7 @@ import net.powermatcher.api.Session;
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
 import net.powermatcher.api.data.Prediction;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
@@ -262,4 +263,12 @@ public abstract class BaseAgentEndpoint
                                                       priceUpdate));
         }
     }
+
+    @Override
+    public void handleAllocationUpdate(AllocationUpdate allocationUpdate) {
+        if (allocationUpdate == null) {
+            throw new IllegalArgumentException("Allocation update cannot be null");
+        }
+    }
+
 }

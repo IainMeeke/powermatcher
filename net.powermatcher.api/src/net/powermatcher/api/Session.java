@@ -2,6 +2,7 @@ package net.powermatcher.api;
 
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.MarketBasis;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
@@ -59,6 +60,8 @@ public interface Session {
      */
 
     void updatePrice(PriceUpdate priceUpdate);
+
+    void updateAllocation(AllocationUpdate allocationUpdate);
 
     /**
      * Passes the {@link Bid} sent by the {@link AgentEndpoint} to the {@link MatcherEndpoint} of this session.

@@ -10,6 +10,7 @@ import net.powermatcher.api.AgentEndpoint;
 import net.powermatcher.api.MatcherEndpoint;
 import net.powermatcher.api.Session;
 import net.powermatcher.api.data.MarketBasis;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.BidUpdate;
 import net.powermatcher.api.messages.PredictionUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
@@ -135,6 +136,22 @@ public class SessionImpl
             });
         } else {
             LOGGER.debug("Sending a prediction update while not connected form agent [{}]", agentId);
+        }
+
+    }
+
+    @Override
+    public void updateAllocation(final AllocationUpdate allocationUpdate) {
+        if (connected) {
+            // PriceUpdate is handled in a separate runnable to avoid deadlocks
+            context.submit(new Runnable() {
+                @Override
+                public void run() {
+                    agentEndpoint.handleAllocationUpdate(allocationUpdate);
+                }
+            });
+        } else {
+            LOGGER.debug("Sending a price update while not connected from agent [" + agentId + "]");
         }
 
     }

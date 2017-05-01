@@ -2,6 +2,7 @@ package net.powermatcher.api;
 
 import net.powermatcher.api.data.Bid;
 import net.powermatcher.api.data.Price;
+import net.powermatcher.api.messages.AllocationUpdate;
 import net.powermatcher.api.messages.PriceUpdate;
 
 /**
@@ -65,4 +66,6 @@ public interface AgentEndpoint
      *            based on.
      */
     void handlePriceUpdate(PriceUpdate priceUpdate);
+
+    void handleAllocationUpdate(AllocationUpdate allocationUpdate);
 }
